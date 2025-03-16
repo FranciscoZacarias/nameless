@@ -37,7 +37,7 @@
 				<CleanCommand></CleanCommand>
 				<BuildWorkingDirectory></BuildWorkingDirectory>
 				<CancelBuild></CancelBuild>
-				<Exe>build/nullname.exe</Exe>
+				<Exe>build/nameless.exe</Exe>
 				<Args></Args>
 				<WorkingDirectory></WorkingDirectory>
 				<DebugCommand></DebugCommand>

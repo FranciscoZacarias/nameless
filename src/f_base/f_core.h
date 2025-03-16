@@ -7,6 +7,8 @@
 /* 
   Macro quick look-up:
 
+  ENABLE_ASSERT
+
   COMPILER_CLANG
   COMPILER_MSVC
   COMPILER_GCC

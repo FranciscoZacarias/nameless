@@ -26,7 +26,6 @@
 #include "win32/f_win32.h"
 
 #if defined(F_ENABLE_OPENGL)
-# include "win32/f_opengl_bindings.h"
 # include "win32/f_opengl_helper.h"
 #endif 
 
@@ -42,7 +41,6 @@
 #include "win32/f_win32.c"
 
 #if defined(F_ENABLE_OPENGL)
-# include "win32/f_opengl_bindings.c"
 # include "win32/f_opengl_helper.c"
 #endif
 
