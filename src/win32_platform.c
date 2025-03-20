@@ -107,7 +107,11 @@ void window_mouse_move_callback(s32 x, s32 y) {
 b32 attach_opengl_context() {
   b32 result = true;
   DeviceContextHandle = GetDC(WindowHandle);
-    
+  if (!DeviceContextHandle) {
+    printf("Failed to get device context\n");
+    return false;
+  }
+
   PIXELFORMATDESCRIPTOR pfd = {
     sizeof(PIXELFORMATDESCRIPTOR), 1,
     PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
@@ -115,33 +119,63 @@ b32 attach_opengl_context() {
     0, 0, 0, 0, 0, 16, 0, 0,
     PFD_MAIN_PLANE, 0, 0, 0, 0
   };
-    
+
   s32 pixelFormat = ChoosePixelFormat(DeviceContextHandle, &pfd);
-  SetPixelFormat(DeviceContextHandle, pixelFormat, &pfd);
-    
-  // Create temporary context to load modern OpenGL
-  HGLRC tempRC = wglCreateContext(DeviceContextHandle);
-  wglMakeCurrent(DeviceContextHandle, tempRC);
-
-  // Load wgl extensions for modern context creation
-  typedef HGLRC (WINAPI *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC, HGLRC, const int*);
-  PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = 
-      (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
-
-  if (wglCreateContextAttribsARB) {
-    s32 attribs[] = {
-      0x2091, 4,      // WGL_CONTEXT_MAJOR_VERSION_ARB
-      0x2092, 6,      // WGL_CONTEXT_MINOR_VERSION_ARB
-      0x2094, 0x9126, // WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB
-      0 // End
-    };
-
-    RenderingContextHandle = wglCreateContextAttribsARB(DeviceContextHandle, NULL, attribs);
-    wglMakeCurrent(NULL, NULL);
-    wglDeleteContext(tempRC);
-    wglMakeCurrent(DeviceContextHandle, RenderingContextHandle);
+  if (!pixelFormat) {
+    printf("Failed to choose pixel format\n");
+    return false;
+  }
+  if (!SetPixelFormat(DeviceContextHandle, pixelFormat, &pfd)) {
+    printf("Failed to set pixel format\n");
+    return false;
   }
 
+  HGLRC tempRC = wglCreateContext(DeviceContextHandle);
+  if (!tempRC) {
+    printf("Failed to create temporary context\n");
+    return false;
+  }
+  if (!wglMakeCurrent(DeviceContextHandle, tempRC)) {
+    printf("Failed to make temporary context current\n");
+    return false;
+  }
+
+  typedef HGLRC (WINAPI *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC, HGLRC, const int*);
+  PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+
+  if (!wglCreateContextAttribsARB) {
+    printf("wglCreateContextAttribsARB not supported\n");
+    wglDeleteContext(tempRC);
+    return false;
+  }
+
+  s32 attribs[] = {
+    0x2091, 4,      // WGL_CONTEXT_MAJOR_VERSION_ARB
+    0x2092, 6,      // WGL_CONTEXT_MINOR_VERSION_ARB
+    0x2094, 0x9126, // WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB
+    0 // End
+  };
+
+  RenderingContextHandle = wglCreateContextAttribsARB(DeviceContextHandle, NULL, attribs);
+  if (!RenderingContextHandle) {
+    printf("Failed to create OpenGL 4.6 context\n");
+    wglDeleteContext(tempRC);
+    return false;
+  }
+
+  wglMakeCurrent(NULL, NULL);
+  wglDeleteContext(tempRC);
+  if (!wglMakeCurrent(DeviceContextHandle, RenderingContextHandle)) {
+    printf("Failed to make OpenGL 4.6 context current\n");
+    return false;
+  }
+
+  if (!gladLoadGL()) {
+    printf("Failed to initialize GLAD\n");
+    return false;
+  }
+
+  printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
   IsOpenGLContextAttached = true;
   return result;
 }

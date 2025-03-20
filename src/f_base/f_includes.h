@@ -26,7 +26,7 @@
 #include "win32/f_win32.h"
 
 #if defined(F_ENABLE_OPENGL)
-# include "win32/f_opengl_helper.h"
+# include "f_opengl_helper.h"
 #endif 
 
 //~ Extern
@@ -41,7 +41,7 @@
 #include "win32/f_win32.c"
 
 #if defined(F_ENABLE_OPENGL)
-# include "win32/f_opengl_helper.c"
+# include "f_opengl_helper.c"
 #endif
 
 #endif // F_INCLUDES_H
