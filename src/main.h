@@ -14,11 +14,13 @@
 
 //~ *.h
 #include "win32_platform.h"
+#include "renderer.h"
 
 //~ *.c
 #include "win32_platform.c"
+#include "renderer.c"
 
-void program_init(); /* Run once at start of program*/
-void program_tick(); /* Run every tick */
+void application_init(); /* Run once at start of program*/
+void application_tick(); /* Run every tick */
 
 #endif // MAIN_H

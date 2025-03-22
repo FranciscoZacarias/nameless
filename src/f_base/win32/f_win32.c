@@ -111,7 +111,7 @@ internal u32 file_size(String file_name) {
   return result;
 }
 
-internal String file_load_entire_file(Arena* arena, String file_name) {
+internal String file_load(Arena* arena, String file_name) {
   String file = { 0 };
   if (!file_exists(file_name)) {
     printf("Error: file_load_entire_file failed because file %s doesn't exist\n", file_name.str);
@@ -144,7 +144,7 @@ internal void print_string(String string) {
   WriteFile(handle, &newline, 1, NULL, NULL);
 }
 
-internal void error_message(const char *fmt, ...) {
+internal void error_message_and_exit(const char *fmt, ...) {
     char buffer[1024];
     va_list args;
 

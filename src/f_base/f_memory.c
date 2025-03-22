@@ -28,8 +28,7 @@ internal Arena* arena_init_sized(u64 reserve, u64 commit) {
     arena->position    = ARENA_HEADER_SIZE;
     arena->align       = DEFAULT_ALIGNMENT;
   } else {
-    printf("Error setting arena's memory");
-    Assert(0);
+    error_message_and_exit("Error setting arena's memory");
   }
   
   return arena;
@@ -53,7 +52,7 @@ internal void* arena_push_no_zero(Arena* arena, u64 size) {
       arena->commited = commit_clamped;
     } else {
       printf("Could not commit memory when increasing the arena's committed memory.");
-      Assert(0);
+      error_message_and_exit(0);
     }
   }
   

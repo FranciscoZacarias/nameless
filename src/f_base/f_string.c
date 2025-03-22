@@ -28,8 +28,7 @@ internal String_List string_split(Arena* arena, String str, String split_charact
   String_List result = { 0 };
   
   if (split_character.size != 1) {
-    printf("string_split expects only one character in split_character. It got %s of size %llu\n", split_character.str, split_character.size);
-    Assert(0);
+    error_message_and_exit("string_split expects only one character in split_character. It got %s of size %llu\n", split_character.str, split_character.size);
   }
   
   u8* cursor = str.str;

@@ -3,7 +3,7 @@ internal OGL_Shader ogl_make_shader(const char* source_path, GLenum kind) {
   OGL_Shader result  = glCreateShader(kind);
   GLenum error       = glGetError();
     
-  String shader_source = file_load_entire_file(scratch.arena, StringLiteral(source_path));
+  String shader_source = file_load(scratch.arena, StringLiteral(source_path));
   glShaderSource(result, 1, &shader_source.str, &(GLint)shader_source.size);
   glCompileShader(result);
   

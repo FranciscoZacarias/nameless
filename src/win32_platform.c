@@ -1,17 +1,17 @@
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
   switch (message) {
   case WM_SIZE:
-    window_resize_callback(LOWORD(lParam), HIWORD(lParam));
+    win32_window_resize_callback(LOWORD(lParam), HIWORD(lParam));
     return 0;
   case WM_KEYDOWN:
-    window_keyboard_callback(wParam);
+    win32_window_keyboard_callback(wParam);
     return 0;
   case WM_MOUSEMOVE:
-    window_mouse_move_callback(LOWORD(lParam), HIWORD(lParam));
+    win32_window_mouse_move_callback(LOWORD(lParam), HIWORD(lParam));
     return 0;
   case WM_LBUTTONDOWN:
   case WM_RBUTTONDOWN:
-    window_mouse_buttons_callback(wParam, LOWORD(lParam), HIWORD(lParam));
+    win32_window_mouse_buttons_callback(wParam, LOWORD(lParam), HIWORD(lParam));
     return 0;
   case WM_DESTROY:
     wglMakeCurrent(NULL, NULL);
@@ -26,7 +26,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 // NOTE(fz): App entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     
-  WindowHandle = window_create(hInstance, 800, 600);
+  WindowHandle = win32_window_create(hInstance, 800, 600);
   if (!WindowHandle) {
     return 1;
   }
@@ -35,30 +35,42 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     return 1;
   }
     
-  // NOTE(fz): Optional
+  // TODO(fz): Should be togglable
   attach_console_output();
     
   RECT rect;
   GetClientRect(WindowHandle, &rect);
-  window_resize_callback(rect.right - rect.left, rect.bottom - rect.top);
+  win32_window_resize_callback(rect.right - rect.left, rect.bottom - rect.top);
 
-  program_init();
+  // Initialize performance counter
+  win32_timer_init();
+  win32_timer_start(&DeltaTime);
+  win32_timer_start(&FrameTime);
+
+  application_init();
 
   MSG msg;
   while (true) {
+    // Measure true frame time
+    win32_timer_end(&FrameTime);
+    win32_timer_start(&FrameTime);
+
     if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
       if (msg.message == WM_QUIT) break;
       TranslateMessage(&msg);
       DispatchMessage(&msg);
     }
-        
-    program_tick();
+
+    // Measure gameplay delta time
+    win32_timer_end(&DeltaTime);
+    win32_timer_start(&DeltaTime);
+    application_tick();
   }
 
   return (s32)msg.wParam;
 }
 
-void window_resize_callback(s32 width, s32 height) {
+internal void win32_window_resize_callback(s32 width, s32 height) {
   if (height == 0) { 
     height = 1;
   }
@@ -67,7 +79,22 @@ void window_resize_callback(s32 width, s32 height) {
   }
 }
 
-HWND window_create(HINSTANCE hInstance, s32 width, s32 height) {
+internal void win32_timer_init() {
+  QueryPerformanceFrequency(&GlobalPerfFrequency);
+}
+
+internal void win32_timer_start(PerformanceTimer* timer) {
+  QueryPerformanceCounter(&timer->start);
+}
+
+internal void win32_timer_end(PerformanceTimer* timer) {
+  QueryPerformanceCounter(&timer->end);
+  LONGLONG difference = timer->end.QuadPart - timer->start.QuadPart;
+  timer->elapsed_seconds = (f32)difference / (f32)GlobalPerfFrequency.QuadPart;
+}
+
+
+internal HWND win32_window_create(HINSTANCE hInstance, s32 width, s32 height) {
   HWND result = {0};
 
   WNDCLASS wc      = {0};
@@ -86,7 +113,7 @@ HWND window_create(HINSTANCE hInstance, s32 width, s32 height) {
   return result;
 }
 
-void window_keyboard_callback(WPARAM wParam) {
+internal void win32_window_keyboard_callback(WPARAM wParam) {
   switch (wParam) {
     case VK_ESCAPE:
       PostQuitMessage(0);
@@ -94,17 +121,17 @@ void window_keyboard_callback(WPARAM wParam) {
   }
 }
 
-void window_mouse_buttons_callback(WPARAM wParam, s32 x, s32 y) {
+internal void win32_window_mouse_buttons_callback(WPARAM wParam, s32 x, s32 y) {
   if (wParam & MK_LBUTTON) {
   }
   if (wParam & MK_RBUTTON) {
   }
 }
 
-void window_mouse_move_callback(s32 x, s32 y) {
+internal void win32_window_mouse_move_callback(s32 x, s32 y) {
 }
 
-b32 attach_opengl_context() {
+internal b32 attach_opengl_context() {
   b32 result = true;
   DeviceContextHandle = GetDC(WindowHandle);
   if (!DeviceContextHandle) {
@@ -180,7 +207,7 @@ b32 attach_opengl_context() {
   return result;
 }
 
-void attach_console_output() {
+internal void attach_console_output() {
   AllocConsole();
   FILE* fp;
   freopen_s(&fp, "CONOUT$", "w", stdout);
