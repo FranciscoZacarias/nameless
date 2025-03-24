@@ -61,51 +61,51 @@ internal void string_list_push(Arena* arena, String_List* list, String str) {
 }
 
 internal b32 cast_string_to_b32(String str, b32* value) {
-	b32 result = 1;
-	if (string_equal(str, StringLiteral("false"))) {
-		*value = 0;
-	} else if (string_equal(str, StringLiteral("true"))) {
-		*value = 1;
-	} else {
-		result = 0;
-	}
-	return result;
+  b32 result = 1;
+  if (string_equal(str, StringLiteral("false"))) {
+    *value = 0;
+  } else if (string_equal(str, StringLiteral("true"))) {
+    *value = 1;
+  } else {
+    result = 0;
+  }
+  return result;
 }
 
 internal b32 cast_string_to_f32(String str, f32* value) {
-	*value = 0.0f;
-	s32 decimal_position = -1;
+  *value = 0.0f;
+  s32 decimal_position = -1;
   
-	for (u64 i = 0; i < str.size; i++) {
-		if (str.str[i] >= '0'  && str.str[i] <= '9') {
-			*value = *value * 10.0f + (str.str[i] - '0');
-			if (decimal_position != -1) {
-				decimal_position += 1;
-			}
-		} else if (str.str[i] == '.') {
-			decimal_position = 0;
-		} else {
-			return 0;
-		}
-	}
+  for (u64 i = 0; i < str.size; i++) {
+    if (str.str[i] >= '0'  && str.str[i] <= '9') {
+      *value = *value * 10.0f + (str.str[i] - '0');
+      if (decimal_position != -1) {
+        decimal_position += 1;
+      }
+    } else if (str.str[i] == '.') {
+      decimal_position = 0;
+    } else {
+      return 0;
+    }
+  }
   
-	if (decimal_position != -1) {
-		*value = *value / (f32)pow(10, decimal_position);
-	}
+  if (decimal_position != -1) {
+    *value = *value / (f32)pow(10, decimal_position);
+  }
   
-	return 1;
+  return 1;
 }
 
 internal b32 cast_string_to_s32(String str, s32* value) {
-	*value = 0.0f;
-	for (u64 i = 0; i < str.size; i++) {
-		if (str.str[i] >= '0'  && str.str[i] <= '9') {
-			*value = *value * 10.0f + (str.str[i] - '0');
-		} else {
-			return 0;
-		}
-	}
-	return 1;
+  *value = 0.0f;
+  for (u64 i = 0; i < str.size; i++) {
+    if (str.str[i] >= '0'  && str.str[i] <= '9') {
+      *value = *value * 10.0f + (str.str[i] - '0');
+    } else {
+      return 0;
+    }
+  }
+  return 1;
 }
 
 internal b32 char_is_alpha(u8 c) {

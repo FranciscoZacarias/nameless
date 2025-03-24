@@ -30,14 +30,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   if (!WindowHandle) {
     return 1;
   }
-    
+
   if (!attach_opengl_context()) {
     return 1;
   }
-    
+
   // TODO(fz): Should be togglable
   attach_console_output();
-    
+
   RECT rect;
   GetClientRect(WindowHandle, &rect);
   win32_window_resize_callback(rect.right - rect.left, rect.bottom - rect.top);
@@ -114,6 +114,7 @@ internal HWND win32_window_create(HINSTANCE hInstance, s32 width, s32 height) {
 }
 
 internal void win32_window_keyboard_callback(WPARAM wParam) {
+  // TODO(fz): This should have an application layer callback.
   switch (wParam) {
     case VK_ESCAPE:
       PostQuitMessage(0);

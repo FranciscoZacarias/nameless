@@ -28,12 +28,18 @@ internal void   thread_wait_for_join_all(Thread** threads, u32 count);
 internal void   thread_wait_for_join_any(Thread** threads, u32 count);
 
 //~ File handling
-internal b32    file_create(String file_name);
-internal b32    file_exists(String file_name);
-internal u32    file_write(String file_name, u8* data, u64 data_size);
-internal u32    file_size(String file_name);
-internal String file_load(Arena* arena, String file_name);
-internal u64    file_get_last_modified_time(String file_name);
+
+typedef struct File_Data {
+  char* data;
+  u32   size;
+} File_Data;
+
+internal b32       file_create(String file_path);
+internal b32       file_exists(String file_path);
+internal u32       file_write(String file_path, u8* data, u64 data_size);
+internal u32       file_size(String file_path);
+internal File_Data file_load(Arena* arena, String file_path);
+internal u64       file_get_last_modified_time(String file_path);
 
 //~ Logging 
 internal void print_string(String string); // TODO(fz): This should be abstracted into a more generic win32_print that then String can use to implement it's own print_string

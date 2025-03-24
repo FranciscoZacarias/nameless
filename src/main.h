@@ -20,6 +20,8 @@
 #include "win32_platform.c"
 #include "renderer.c"
 
+global Thread_Context main_thread_context;
+
 void application_init(); /* Run once at start of program*/
 void application_tick(); /* Run every tick */
 

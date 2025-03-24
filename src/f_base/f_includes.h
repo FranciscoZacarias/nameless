@@ -8,9 +8,9 @@
 
 //~ CLib
 #include <stdlib.h>
-#include <stdio.h>
+#include <stdio.h> // TODO(fz): Move this to a f_stdio, so we can properly abstract into our String API
 #include <string.h>
-#include <math.h> // Required for: sinf(), cosf(), tan(), atan2f(), sqrtf(), floor(), fminf(), fmaxf(), fabsf()
+#include <math.h> // TODO(fz): Replace/Implement these functions -> sinf(), cosf(), tan(), atan2f(), sqrtf(), floor(), fminf(), fmaxf(), fabsf()
 
 //~ Extern
 #include "external/stb_sprintf.h"
