@@ -228,14 +228,18 @@
 #define Statement(S) do{ S }while(0)
 
 #if !defined(AssertBreak)
-# define AssertBreak() (*(volatile int*)0 = 0)
+# if OS_WINDOWS
+#  define AssertBreak(condition) error_message_and_exit("Assert Failed.\nFile: %s\nLine: %d\nExpression: (%s)", __FILE__, __LINE__, Stringify(condition));
+# else
+#  define AssertBreak(condition) (*(volatile int*)0 = 0)
+# endif 
 #endif
 
 #if ENABLE_ASSERT
-# define Assert(c) Statement( if (!(c)){ AssertBreak(); } )
+# define Assert(condition) Statement( if (!(condition)){ AssertBreak(condition); } )
 # define AssertNoReentry() Statement(local_persist b32 triggered = 0;Assert(triggered == 0); triggered = 1;) 
 #else
-# define Assert(c)
+# define Assert(condition)
 # define AssertNoReentry()
 #endif
 

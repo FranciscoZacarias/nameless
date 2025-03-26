@@ -78,6 +78,22 @@ typedef struct Transformf32 {
 } Transformf32;
 #define transform(t,r,s) (Transformf32){t,r,s}
 
+#define Color_Red        vec4f32(1.0f,  0.0f,  0.0f,  1.0f)
+#define Color_Green      vec4f32(0.0f,  1.0f,  0.0f,  1.0f)
+#define Color_Blue       vec4f32(0.0f,  0.0f,  1.0f,  1.0f)
+#define Color_Yellow     vec4f32(1.0f,  1.0f,  0.0f,  1.0f)
+#define Color_Cyan       vec4f32(0.0f,  1.0f,  1.0f,  1.0f)
+#define Color_Magenta    vec4f32(1.0f,  0.0f,  1.0f,  1.0f)
+#define Color_White      vec4f32(1.0f,  1.0f,  1.0f,  1.0f)
+#define Color_Black      vec4f32(0.0f,  0.0f,  0.0f,  1.0f)
+#define Color_Gray       vec4f32(0.5f,  0.5f,  0.5f,  1.0f)
+#define Color_LightGray  vec4f32(0.75f, 0.75f, 0.75f, 1.0f)
+#define Color_DarkGray   vec4f32(0.25f, 0.25f, 0.25f, 1.0f)
+#define Color_Orange     vec4f32(1.0f,  0.5f,  0.0f,  1.0f)
+#define Color_Purple     vec4f32(0.5f,  0.0f,  0.5f,  1.0f)
+#define Color_Brown      vec4f32(0.6f,  0.4f,  0.2f,  1.0f)
+#define Color_Pink       vec4f32(1.0f,  0.75f, 0.8f,  1.0f)
+
 internal f32 f32_min(f32 a, f32 b);
 internal f32 f32_max(f32 a, f32 b);
 internal f32 f32_abs(f32 value);
@@ -88,6 +104,7 @@ internal f32 f32_remap(f32 value, f32 inputStart, f32 inputEnd, f32 outputStart,
 internal f32 f32_wrap(f32 value, f32 min, f32 max);
 internal b32 f32_equals(f32 a, f32 b);
 
+// TODO(fz): Rename functions to match their type E,g, vector2_distance -> vec2f32_distance
 internal f32 vector2_distance(Vec2f32 a, Vec2f32 b);
 internal f32 vector2_distance_signed(Vec2f32 a, Vec2f32 b, Vec2f32 reference);
 

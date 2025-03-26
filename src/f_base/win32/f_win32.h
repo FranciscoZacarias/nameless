@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include <userenv.h>
 
+//~ Window
 internal void win32_init(void);
 
 //~ Memory
