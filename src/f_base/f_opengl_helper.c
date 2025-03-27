@@ -17,7 +17,7 @@ internal OGL_Shader ogl_make_shader(String source_path, GLenum kind) {
     glGetShaderInfoLog(result, 1024, NULL, infoLog);
     printf("Error %d while compiling shader. Log: %s", success, infoLog);
     glDeleteShader(result);
-    error_message_and_exit("Error creating shader");
+    ERROR_MESSAGE_AND_EXIT("Error creating shader");
   }
 
   scratch_end(&scratch);
@@ -41,7 +41,7 @@ internal OGL_Shader ogl_make_program(GLuint *shaders, u32 count) {
     for (u32 i = 0; i < count; i += 1){
       glDeleteShader(shaders[i]);
     }
-    error_message_and_exit("Error creating shader program");
+    ERROR_MESSAGE_AND_EXIT("Error creating shader program");
   }
   
   return result;

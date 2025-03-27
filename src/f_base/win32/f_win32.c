@@ -141,14 +141,17 @@ internal void print_string(String string) {
   WriteFile(handle, &newline, 1, NULL, NULL);
 }
 
-internal void error_message_and_exit(const char *fmt, ...) {
-    char buffer[1024];
-    va_list args;
+internal void _error_message_and_exit(const char *file, int line, const char *func, const char *fmt, ...) {
+  char buffer[1024];
+  va_list args;
 
-    va_start(args, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, args);
-    va_end(args);
+  va_start(args, fmt);
+  vsnprintf(buffer, sizeof(buffer), fmt, args);
+  va_end(args);
 
-    MessageBoxA(0, buffer, "Error", MB_OK);
-    ExitProcess(1);
+  char detailed_buffer[2048];
+  snprintf(detailed_buffer, sizeof(detailed_buffer), "Error at %s:%d in %s\n%s", file, line, func, buffer);
+
+  MessageBoxA(0, detailed_buffer, "ahah idiot", MB_OK);
+  ExitProcess(1);
 }

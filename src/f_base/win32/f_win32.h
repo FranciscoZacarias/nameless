@@ -46,6 +46,7 @@ internal u64       file_get_last_modified_time(String file_path);
 internal void print_string(String string); // TODO(fz): This should be abstracted into a more generic win32_print that then String can use to implement it's own print_string
 
 //~ Error
-internal void error_message_and_exit(const char *fmt, ...); // TODO(fz): We need a more refined error system;
+#define ERROR_MESSAGE_AND_EXIT(fmt, ...) _error_message_and_exit(__FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+internal void _error_message_and_exit(const char *file, int line, const char *func, const char *fmt, ...);
 
 #endif // F_WIN32_H

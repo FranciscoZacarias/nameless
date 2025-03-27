@@ -4,7 +4,7 @@
 #define VERTEX_SHADER_PATH   "D:/work/nameless/src/shaders/vertex_shader.glsl"
 #define FRAGMENT_SHADER_PATH "D:/work/nameless/src/shaders/fragment_shader.glsl"
 
-#define RENDERER_MAX_TRIANGLES Kilobytes(4)*3
+#define RENDERER_MAX_TRIANGLES Kilobytes(4)*2
 
 typedef struct Renderer_Vertex {
   Vec3f32 position;

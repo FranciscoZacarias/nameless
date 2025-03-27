@@ -227,12 +227,13 @@
 
 #define Statement(S) do{ S }while(0)
 
+
 #if !defined(AssertBreak)
-# if OS_WINDOWS
-#  define AssertBreak(condition) error_message_and_exit("Assert Failed.\nFile: %s\nLine: %d\nExpression: (%s)", __FILE__, __LINE__, Stringify(condition));
+# if defined(OS_WINDOWS)
+#  define AssertBreak(condition) Statement(if (!(condition)) { ERROR_MESSAGE_AND_EXIT("Assert Failed\nExpression: %s", Stringify(condition)); })
 # else
 #  define AssertBreak(condition) (*(volatile int*)0 = 0)
-# endif 
+# endif
 #endif
 
 #if ENABLE_ASSERT
