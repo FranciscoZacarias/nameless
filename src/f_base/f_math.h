@@ -72,11 +72,11 @@ typedef struct Quatf32 {
 #define quatf32_identity() quatf32(0.0f, 0.0f, 0.0f, 1.0f)
 
 typedef struct Transformf32 {
-  Vec3f32    translation;
+  Vec3f32 translation;
   Quatf32 rotation;
-  Vec3f32    scale;
+  Vec3f32 scale;
 } Transformf32;
-#define transform(t,r,s) (Transformf32){t,r,s}
+#define transformf32(t,r,s) (Transformf32){t,r,s}
 
 #define Color_Red        vec4f32(1.0f,  0.0f,  0.0f,  1.0f)
 #define Color_Green      vec4f32(0.0f,  1.0f,  0.0f,  1.0f)

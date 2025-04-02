@@ -1,24 +1,66 @@
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
   switch (message) {
-  case WM_SIZE:
-    win32_window_resize_callback(LOWORD(lParam), HIWORD(lParam));
-    return 0;
-  case WM_KEYDOWN:
-    win32_window_keyboard_callback(wParam);
-    return 0;
-  case WM_MOUSEMOVE:
-    win32_window_mouse_move_callback(LOWORD(lParam), HIWORD(lParam));
-    return 0;
-  case WM_LBUTTONDOWN:
-  case WM_RBUTTONDOWN:
-    win32_window_mouse_buttons_callback(wParam, LOWORD(lParam), HIWORD(lParam));
-    return 0;
-  case WM_DESTROY:
-    wglMakeCurrent(NULL, NULL);
-    wglDeleteContext(RenderingContextHandle);
-    ReleaseDC(hWnd, DeviceContextHandle);
-    PostQuitMessage(0);
-    return 0;
+    case WM_SETCURSOR:
+      if (LOWORD(lParam) == HTCLIENT) {
+        win32_set_cursor(CURSOR_ARROW);
+        return TRUE;
+      } break;
+
+    case WM_SIZE: {
+      win32_window_resize_callback(LOWORD(lParam), HIWORD(lParam));
+      return 0;
+    } break;
+
+    // Keyboard keys
+    case WM_KEYDOWN: {
+      _input_process_keyboard_key((Keyboard_Key)wParam, TRUE);
+      return 0;
+    } break;
+    case WM_KEYUP: {
+      _input_process_keyboard_key((Keyboard_Key)wParam, FALSE);
+      return 0;
+    } break;
+
+    // Mouse Cursor
+    case WM_MOUSEMOVE: {
+      _input_process_mouse_cursor(LOWORD(lParam), HIWORD(lParam));
+      return 0;
+    } break;
+
+    
+    // Mouse Buttons
+    case WM_LBUTTONDOWN: {
+      _input_process_mouse_button(MouseButton_Left, TRUE);
+      return 0;
+    } break;
+    case WM_LBUTTONUP: {
+      _input_process_mouse_button(MouseButton_Left, FALSE);
+      return 0;
+    } break;
+    case WM_RBUTTONDOWN: {
+      _input_process_mouse_button(MouseButton_Right, TRUE);
+      return 0;
+    } break;
+    case WM_RBUTTONUP: {
+      _input_process_mouse_button(MouseButton_Right, FALSE);
+      return 0;
+    } break;
+    case WM_MBUTTONDOWN: {
+      _input_process_mouse_button(MouseButton_Middle, TRUE);
+      return 0;
+    } break;
+    case WM_MBUTTONUP: {
+      _input_process_mouse_button(MouseButton_Middle, FALSE);
+      return 0;
+    } break;
+
+    case WM_DESTROY: {
+      wglMakeCurrent(NULL, NULL);
+      wglDeleteContext(RenderingContextHandle);
+      ReleaseDC(hWnd, DeviceContextHandle);
+      PostQuitMessage(0);
+      return 0;
+    } break;
   }
   return DefWindowProc(hWnd, message, wParam, lParam);
 }
@@ -26,7 +68,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 // NOTE(fz): App entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     
-  WindowHandle = win32_window_create(hInstance, 800, 600);
+  WindowHandle = win32_window_create(hInstance, WINDOW_WIDTH, WINDOW_HEIGHT);
   if (!WindowHandle) {
     return 1;
   }
@@ -36,7 +78,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   }
 
   // TODO(fz): Should be togglable
+#if F_ATTACH_CONSOLE
   attach_console_output();
+#endif
 
   RECT rect;
   GetClientRect(WindowHandle, &rect);
@@ -44,16 +88,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   // Initialize performance counter
   win32_timer_init();
-  win32_timer_start(&DeltaTime);
-  win32_timer_start(&FrameTime);
+  win32_timer_start(&Timer_ElapsedTime);
+  win32_timer_start(&Timer_DeltaTime);
+  win32_timer_start(&Timer_FrameTime);
+  
 
   application_init();
 
   MSG msg;
   while (true) {
     // Measure true frame time
-    win32_timer_end(&FrameTime);
-    win32_timer_start(&FrameTime);
+    win32_timer_end(&Timer_FrameTime);
+    win32_timer_start(&Timer_FrameTime);
 
     if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
       if (msg.message == WM_QUIT) break;
@@ -62,8 +108,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
 
     // Measure gameplay delta time
-    win32_timer_end(&DeltaTime);
-    win32_timer_start(&DeltaTime);
+    win32_timer_end(&Timer_DeltaTime);
+    win32_timer_start(&Timer_DeltaTime);
     application_tick();
   }
 
@@ -80,6 +126,7 @@ internal void win32_window_resize_callback(s32 width, s32 height) {
 }
 
 internal void win32_timer_init() {
+  AssertNoReentry();
   QueryPerformanceFrequency(&GlobalPerfFrequency);
 }
 
@@ -113,23 +160,43 @@ internal HWND win32_window_create(HINSTANCE hInstance, s32 width, s32 height) {
   return result;
 }
 
-internal void win32_window_keyboard_callback(WPARAM wParam) {
-  // TODO(fz): This should have an application layer callback.
-  switch (wParam) {
-    case VK_ESCAPE:
-      PostQuitMessage(0);
+internal void win32_set_cursor(CursorType cursor) {
+  HCURSOR hCursor = NULL;
+
+  switch (cursor) {
+    case CURSOR_ARROW: {
+      hCursor = LoadCursor(NULL, IDC_ARROW);
       break;
+    }
+    case CURSOR_HAND: {
+      hCursor = LoadCursor(NULL, IDC_HAND);
+      break;
+    }
+    case CURSOR_CROSSHAIR: {
+      hCursor = LoadCursor(NULL, IDC_CROSS);
+      break;
+    }
+    case CURSOR_IBEAM: {
+      hCursor = LoadCursor(NULL, IDC_IBEAM);
+      break;
+    }
+    case CURSOR_WAIT: { 
+      hCursor = LoadCursor(NULL, IDC_WAIT);
+      break;
+    }
+    case CURSOR_SIZE_ALL: {
+      hCursor = LoadCursor(NULL, IDC_SIZEALL);
+      break;
+    }
+    default: {
+      hCursor = LoadCursor(NULL, IDC_ARROW);
+      break;
+    }
   }
-}
 
-internal void win32_window_mouse_buttons_callback(WPARAM wParam, s32 x, s32 y) {
-  if (wParam & MK_LBUTTON) {
+  if (hCursor) {
+    SetCursor(hCursor);
   }
-  if (wParam & MK_RBUTTON) {
-  }
-}
-
-internal void win32_window_mouse_move_callback(s32 x, s32 y) {
 }
 
 internal b32 attach_opengl_context() {
@@ -214,4 +281,11 @@ internal void attach_console_output() {
   freopen_s(&fp, "CONOUT$", "w", stdout);
   freopen_s(&fp, "CONOUT$", "w", stderr);
   IsTerminalAttached = true;
+}
+
+internal f32 _get_elapsed_time(void) {
+  LARGE_INTEGER current;
+  QueryPerformanceCounter(&current);
+  LONGLONG ticks = current.QuadPart - Timer_ElapsedTime.start.QuadPart;
+  return (f32)ticks / (f32)GlobalPerfFrequency.QuadPart;
 }
