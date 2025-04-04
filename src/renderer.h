@@ -37,7 +37,7 @@ global Vec2f32 Translations[100];
 // Renderer core functions
 internal void renderer_init();
 internal void renderer_begin_frame();
-internal void renderer_end_frame();
+internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 
 // Renderer primitives
 internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color);

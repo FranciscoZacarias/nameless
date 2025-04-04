@@ -11,14 +11,14 @@ layout(location = 1) uniform mat4 view;
 out vec4 frag_color;
 
 vec3 rotate(vec3 v, vec4 q) {
-    vec3 t = 2.0 * cross(q.xyz, v);
-    return v + q.w * t + cross(q.xyz, t);
+  vec3 t = 2.0 * cross(q.xyz, v);
+  return v + q.w * t + cross(q.xyz, t);
 }
 
 void main() {
-    vec3 scaled_pos = base_position * instance_scale;
-    vec3 rotated_pos = rotate(scaled_pos, instance_rotation);
-    vec3 final_pos = rotated_pos + instance_translation;
-    gl_Position = vec4(final_pos, 1.0); // TODO(fz): Add projection * view *
-    frag_color = instance_color;
+  vec3 scaled_pos  = base_position * instance_scale;
+  vec3 rotated_pos = rotate(scaled_pos, instance_rotation);
+  vec3 final_pos   = rotated_pos + instance_translation;
+  gl_Position = projection * view * vec4(final_pos, 1.0);
+  frag_color  = instance_color;
 }

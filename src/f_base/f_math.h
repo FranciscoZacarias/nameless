@@ -130,7 +130,7 @@ internal Vec3f32 vector3_normalize(Vec3f32 v);
 internal Vec3f32 vector3_rotate_by_axis(Vec3f32 v, Vec3f32 axis, f32 angle);
 internal Vec3f32 vector3_lerp(Vec3f32 a, Vec3f32 b, f32 t);
 internal Vec3f32 vector3_unproject(Vec3f32 source, Mat4f32 projection, Mat4f32 view);
-internal Vec3f32 vector3_mul_matrix4(Vec3f32 v, Mat4f32 m);
+internal Vec3f32 mat4f32_transform_vec3f32(Mat4f32 mat, Vec3f32 vec);
 
 internal f32 vector3_dot(Vec3f32 a, Vec3f32 b);
 internal f32 vector3_length(Vec3f32 v);
@@ -176,7 +176,7 @@ internal Quatf32 quaternion_add(Quatf32 q1, Quatf32 q2);
 internal Quatf32 quaternion_add_value(Quatf32 q, f32 value);
 internal Quatf32 quaternion_subtract(Quatf32 q1, Quatf32 q2);
 internal Quatf32 quaternion_subtract_value(Quatf32 q, f32 value);
-internal f32        quaternion_length(Quatf32 q);
+internal f32     quaternion_length(Quatf32 q);
 internal Quatf32 quaternion_normalize(Quatf32 q);
 internal Quatf32 quaternion_invert(Quatf32 q);
 internal Quatf32 quaternion_multiply(Quatf32 q1, Quatf32 q2);
@@ -189,10 +189,34 @@ internal Quatf32 quaternion_cubic_hermit_spline(Quatf32 q1, Quatf32 outTangent1,
 internal Quatf32 quaternion_from_vector3_to_vector3(Vec3f32 from, Vec3f32 to);
 internal Quatf32 quaternion_from_matrix(Mat4f32 mat);
 internal Quatf32 quaternion_from_axis_angle(Vec3f32 axis, f32 angle);
-internal void       axis_angle_from_quaternion(Quatf32 q, Vec3f32 *axis, f32 *angle);
+internal void    axis_angle_from_quaternion(Quatf32 q, Vec3f32 *axis, f32 *angle);
 internal Quatf32 quaternion_from_euler(f32 pitch, f32 yaw, f32 roll);
-internal void       euler_from_quaternion(Quatf32 q, f32* pitch, f32* yaw, f32* roll);
+internal void    euler_from_quaternion(Quatf32 q, f32* pitch, f32* yaw, f32* roll);
 internal Quatf32 quaternion_mul_matrix4(Quatf32 q, Mat4f32 mat);
-internal b32        quaternion_equals(Quatf32 p, Quatf32 q);
+internal b32     quaternion_equals(Quatf32 p, Quatf32 q);
+
+///////////////////////
+//~ TODO(fz): Debug temp stuff
+
+// Print Quatf32
+void print_quatf32(Quatf32* q, const char* label) {
+  printf("%s: Quatf32: { x: %.6f, y: %.6f, z: %.6f, w: %.6f }\n", label, q->x, q->y, q->z, q->w);
+}
+
+void print_mat4f32(Mat4f32* m, const char* label) {
+  printf("%s: Mat4f32:\n", label);
+  printf("  [ %.6f, %.6f, %.6f, %.6f ]\n", m->m0, m->m4, m->m8,  m->m12);
+  printf("  [ %.6f, %.6f, %.6f, %.6f ]\n", m->m1, m->m5, m->m9,  m->m13);
+  printf("  [ %.6f, %.6f, %.6f, %.6f ]\n", m->m2, m->m6, m->m10, m->m14);
+  printf("  [ %.6f, %.6f, %.6f, %.6f ]\n", m->m3, m->m7, m->m11, m->m15);
+}
+
+// Print Vec3f32
+void print_vec3f32(Vec3f32* v, const char* label) {
+  printf("%s: Vec3f32: { x: %.6f, y: %.6f, z: %.6f }\n", label, v->x, v->y, v->z);
+}
+void print_vec4f32(Vec4f32* v, const char* label) {
+  printf("%s: Vec4f32: { x: %.6f, y: %.6f, z: %.6f, w: %.6f }\n", label, v->x, v->y, v->z, v->w);
+}
 
 #endif // F_MATH_H

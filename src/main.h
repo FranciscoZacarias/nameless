@@ -15,14 +15,19 @@
 #define F_ENABLE_OPENGL 1
 #include "f_includes.h"
 
+
 //~ *.h
 #include "win32_platform.h"
 #include "input.h"
+#include "camera.h"
 #include "renderer.h"
+
+Camera GlobalCamera;
 
 //~ *.c
 #include "win32_platform.c"
 #include "input.c"
+#include "camera.c"
 #include "renderer.c"
 
 global Thread_Context main_thread_context;

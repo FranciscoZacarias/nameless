@@ -348,6 +348,13 @@ internal Vec3f32 vector3_unproject(Vec3f32 source, Mat4f32 projection, Mat4f32 v
   return result;
 }
 
+internal Vec3f32 mat4f32_transform_vec3f32(Mat4f32 mat, Vec3f32 vec) {
+  f32 x = mat.m0 * vec.x + mat.m4 * vec.y + mat.m8  * vec.z;
+  f32 y = mat.m1 * vec.x + mat.m5 * vec.y + mat.m9  * vec.z;
+  f32 z = mat.m2 * vec.x + mat.m6 * vec.y + mat.m10 * vec.z;
+  return vec3f32(x, y, z);
+}
+
 internal f32 vector3_dot(Vec3f32 a, Vec3f32 b) {
   f32 result = a.x*b.x + a.y*b.y + a.z*b.z;
   return result;
@@ -1183,7 +1190,7 @@ internal Quatf32 quaternion_from_axis_angle(Vec3f32 axis, f32 angle) {
     f32 length = 0.0f;
     f32 ilength = 0.0f;
 
-    // Vector3Normalize(axis)
+    // vec3f32_normalize
     length = axisLength;
     if (length == 0.0f) {
       length = 1.0f;
@@ -1201,7 +1208,7 @@ internal Quatf32 quaternion_from_axis_angle(Vec3f32 axis, f32 angle) {
     result.z = axis.z*sinres;
     result.w = cosres;
 
-    // QuaternionNormalize(q);
+    // quaternion_normalize
     Quatf32 q = result;
     length = sqrtf(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
     if (length == 0.0f) {

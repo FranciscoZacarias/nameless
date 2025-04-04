@@ -107,6 +107,7 @@ internal void _input_process_mouse_button(Mouse_Button button, b32 is_pressed) {
 internal void _input_process_mouse_cursor(s32 x, s32 y) {
   InputState.mouse_current.screen_space_x = (f32)x;
   InputState.mouse_current.screen_space_y = (f32)y;
+  camera_mouse_callback(&GlobalCamera, (f64)x, (f64)y);
 #if F_ENABLE_INPUT_LOGGING
   printf("Mouse Moved: X=%d, Y=%d\n", x, y);
 #endif

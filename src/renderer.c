@@ -65,9 +65,12 @@ internal void renderer_begin_frame() {
   Renderer.triangles_count = 0;
 }
 
-internal void renderer_end_frame() {
+internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection) {
   glUseProgram(ShaderProgram);
   {
+    renderer_set_uniform_mat4fv(ShaderProgram, "view", view);
+    renderer_set_uniform_mat4fv(ShaderProgram, "projection", projection);
+
     // Draw triangles
     if (Renderer.triangles_count > 0) {
       glBindVertexArray(VAO_Triangle);
