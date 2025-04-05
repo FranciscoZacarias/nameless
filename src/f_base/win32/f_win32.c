@@ -1,4 +1,5 @@
-internal void win32_init() {
+internal void application_stop() {
+  PostQuitMessage(0);
 }
 
 internal void* memory_reserve(u64 size) {

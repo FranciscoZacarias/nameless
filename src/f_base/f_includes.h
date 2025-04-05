@@ -2,11 +2,17 @@
 #define F_INCLUDES_H
 
 /*
-  Quick macros lookup:
+  Help:
 
-  Enable opengl:        #define F_ENABLE_OPENGL 1
-  Attach console:       #define F_ATTACH_CONSOLE
-  Enable assert:        #define ENABLE_ASSERT 1
+  Enables:
+    Create window:  #define F_ENABLE_WINDOW  1
+    Enable opengl:  #define F_ENABLE_OPENGL  1
+    Attach console: #define F_ENABLE_CONSOLE 1
+    Enable assert:  #define F_ENABLE_ASSERT  1
+  
+  Config:
+    #define CAMERA_SENSITIVITY 1.0f
+    #define CAMERA_SPEED 8.0f
 
   Macros that provide Context:
   {
@@ -49,10 +55,12 @@
 #include "f_memory.h"
 #include "f_string.h"
 #include "f_thread_context.h"
-#include "win32/f_win32.h"
+#include "f_input.h"
+#include "f_win32.h"
+#include "f_win32_window.h"
 
 #if defined(F_ENABLE_OPENGL)
-# include "f_opengl_helper.h"
+# include "extra/f_opengl_helper.h"
 #endif 
 
 //~ Extern
@@ -64,10 +72,12 @@
 #include "f_memory.c"
 #include "f_string.c"
 #include "f_thread_context.c"
-#include "win32/f_win32.c"
+#include "f_input.c"
+#include "f_win32.c"
+#include "f_win32_window.c"
 
 #if defined(F_ENABLE_OPENGL)
-# include "f_opengl_helper.c"
+# include "extra/f_opengl_helper.c"
 #endif
 
 #endif // F_INCLUDES_H

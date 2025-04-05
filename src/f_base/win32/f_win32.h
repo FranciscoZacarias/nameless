@@ -5,17 +5,19 @@
 #include <Windows.h>
 #include <userenv.h>
 
-//~ Window
-internal void win32_init(void);
+///////////////////////
+//~ Win32
+internal void application_stop();
 
+///////////////////////
 //~ Memory
 internal void* memory_reserve(u64 size);
 internal b32   memory_commit(void* memory, u64 size);
 internal void  memory_decommit(void* memory, u64 size);
 internal void  memory_release(void* memory, u64 size);
+internal u64   memory_get_page_size();
 
-internal u64 memory_get_page_size();
-
+///////////////////////
 //~ Threading
 typedef u64 thread_func(void* context); 
 
@@ -28,8 +30,8 @@ internal void   thread_wait_for_join(Thread* other);
 internal void   thread_wait_for_join_all(Thread** threads, u32 count);
 internal void   thread_wait_for_join_any(Thread** threads, u32 count);
 
+///////////////////////
 //~ File handling
-
 typedef struct File_Data {
   char* data;
   u32   size;
@@ -42,9 +44,11 @@ internal u32       file_size(String file_path);
 internal File_Data file_load(Arena* arena, String file_path);
 internal u64       file_get_last_modified_time(String file_path);
 
+///////////////////////
 //~ Logging 
 internal void print_string(String string); // TODO(fz): This should be abstracted into a more generic win32_print that then String can use to implement it's own print_string
 
+///////////////////////
 //~ Error
 // TODO(Fz): I'm not sure if I like this macro. Feels constrained and unecessary
 #define ERROR_MESSAGE_AND_EXIT(fmt, ...) _error_message_and_exit(__FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)

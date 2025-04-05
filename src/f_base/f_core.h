@@ -7,7 +7,7 @@
 /* 
   Macro quick look-up:
 
-  ENABLE_ASSERT
+  F_ENABLE_ASSERT
 
   COMPILER_CLANG
   COMPILER_MSVC
@@ -236,7 +236,7 @@
 # endif
 #endif
 
-#if ENABLE_ASSERT
+#if F_ENABLE_ASSERT
 # define Assert(condition) Statement( if (!(condition)){ AssertBreak(condition); } )
 # define AssertNoReentry() Statement(local_persist b32 triggered = 0;Assert(triggered == 0); triggered = 1;) 
 #else

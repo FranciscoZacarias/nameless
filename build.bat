@@ -7,7 +7,9 @@ REM /wd4201 Ignores the compiler warning C4201 about nameless structs/unions
 set cl_default_flags=/Isrc /nologo /FC /Zi 
 
 set external_include= /I"..\src\f_base" ^
-                      /I"..\src\f_base\external\opengl"
+                      /I"..\src\f_base\extra" ^
+                      /I"..\src\f_base\win32" ^
+                      /I"..\src\f_base\external\opengl" 
 
 set linker_flags= user32.lib ^
                   gdi32.lib ^

@@ -1,7 +1,8 @@
 #ifndef WIN32_PLATFORM_H
 #define WIN32_PLATFORM_H
 
-// TODO(fz): I don't like these forward declares here.
+///////////////////////
+//~ Application space
 extern void application_init();
 extern void application_tick();
 
@@ -13,15 +14,15 @@ typedef struct PerformanceTimer {
   f32 elapsed_seconds;
 } PerformanceTimer;
 
-global LARGE_INTEGER GlobalPerfFrequency;
-global PerformanceTimer Timer_DeltaTime   = {0}; 
-global PerformanceTimer Timer_FrameTime   = {0};
-global PerformanceTimer Timer_ElapsedTime = {0};
+global LARGE_INTEGER    _PerformanceFrequency;
+global PerformanceTimer _Timer_DeltaTime   = {0}; 
+global PerformanceTimer _Timer_FrameTime   = {0};
+global PerformanceTimer _Timer_ElapsedTime = {0};
 
 internal f32 _get_elapsed_time();
 
-#define DeltaTime   Timer_DeltaTime.elapsed_seconds
-#define FrameTime   Timer_FrameTime.elapsed_seconds
+#define DeltaTime   _Timer_DeltaTime.elapsed_seconds
+#define FrameTime   _Timer_FrameTime.elapsed_seconds
 #define ElapsedTime _get_elapsed_time()
 
 void win32_timer_init();
@@ -31,16 +32,16 @@ void win32_timer_end(PerformanceTimer* timer);
 ///////////////////////
 //~ Window
 
-global HDC   DeviceContextHandle    = NULL;
-global HGLRC RenderingContextHandle = NULL;
-global HWND  WindowHandle           = NULL;
+global HDC   _DeviceContextHandle    = NULL;
+global HGLRC _RenderingContextHandle = NULL;
+global HWND  _WindowHandle           = NULL;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-internal HWND    win32_window_create(HINSTANCE hInstance, s32 width, s32 height);
-internal void    win32_window_resize_callback(s32 width, s32 height);
-internal void    win32_window_keyboard_callback(WPARAM wParam);
-internal void    win32_window_mouse_buttons_callback(WPARAM wParam, s32 x, s32 y);
+internal HWND win32_window_create(HINSTANCE hInstance, s32 width, s32 height);
+internal void win32_window_resize_callback(s32 width, s32 height);
+internal void win32_window_keyboard_callback(WPARAM wParam);
+internal void win32_window_mouse_buttons_callback(WPARAM wParam, s32 x, s32 y);
 
 ///////////////////////
 //~ Cursor
@@ -64,10 +65,10 @@ internal void win32_lock_cursor(b32 lock);
 internal void win32_hide_cursor(b32 hide);
 
 ///////////////////////
-//~ Components
+//~ Window Components
 
-global b32 IsOpenGLContextAttached = false;
-global b32 IsTerminalAttached      = false;
+global b32 _IsOpenGLContextAttached = false;
+global b32 _IsTerminalAttached      = false;
 internal b32  attach_opengl_context();
 internal void attach_console_output();
 

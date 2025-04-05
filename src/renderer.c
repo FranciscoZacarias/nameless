@@ -85,7 +85,7 @@ internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection) {
   // TODO(fz): We don't want to do immediate mode rendering for this renderer.
   Renderer.triangles_count = 0;
 
-  SwapBuffers(DeviceContextHandle);
+  SwapBuffers(_DeviceContextHandle);
 }
 
 internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color) {

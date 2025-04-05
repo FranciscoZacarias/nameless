@@ -61,8 +61,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
     case WM_DESTROY: {
       wglMakeCurrent(NULL, NULL);
-      wglDeleteContext(RenderingContextHandle);
-      ReleaseDC(hWnd, DeviceContextHandle);
+      wglDeleteContext(_RenderingContextHandle);
+      ReleaseDC(hWnd, _DeviceContextHandle);
       PostQuitMessage(0);
       return 0;
     } break;
@@ -73,36 +73,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 // NOTE(fz): App entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     
-  WindowHandle = win32_window_create(hInstance, WINDOW_WIDTH, WINDOW_HEIGHT);
-  if (!WindowHandle) {
+#if F_ENABLE_WINDOW
+  _WindowHandle = win32_window_create(hInstance, WINDOW_WIDTH, WINDOW_HEIGHT);
+  if (!_WindowHandle) {
     return 1;
   }
+#endif 
 
+#if F_ENABLE_OPENGL
   if (!attach_opengl_context()) {
     return 1;
   }
+#endif
 
   // TODO(fz): Should be togglable
-#if F_ATTACH_CONSOLE
+#if F_ENABLE_CONSOLE
   attach_console_output();
 #endif
 
   RECT rect;
-  GetClientRect(WindowHandle, &rect);
+  GetClientRect(_WindowHandle, &rect);
   win32_window_resize_callback(rect.right - rect.left, rect.bottom - rect.top);
 
-  // Initialize performance counter
+  // Initialize timers
   win32_timer_init();
-  win32_timer_start(&Timer_ElapsedTime);
-  win32_timer_start(&Timer_DeltaTime);
-  win32_timer_start(&Timer_FrameTime);
+  win32_timer_start(&_Timer_ElapsedTime);
+  win32_timer_start(&_Timer_DeltaTime);
+  win32_timer_start(&_Timer_FrameTime);
   
+  _input_init();
   application_init();
 
   MSG msg;
   while (true) {
     // Measure true frame time
-    win32_timer_start(&Timer_FrameTime);
+    win32_timer_start(&_Timer_FrameTime);
 
     if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
       if (msg.message == WM_QUIT) break;
@@ -111,11 +116,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
 
     // Measure gameplay delta time
-    win32_timer_start(&Timer_DeltaTime);
+    win32_timer_start(&_Timer_DeltaTime);
     application_tick();
 
-    win32_timer_end(&Timer_DeltaTime);
-    win32_timer_end(&Timer_FrameTime);
+    win32_timer_end(&_Timer_DeltaTime);
+    win32_timer_end(&_Timer_FrameTime);
   }
 
   return (s32)msg.wParam;
@@ -125,14 +130,14 @@ internal void win32_window_resize_callback(s32 width, s32 height) {
   if (height == 0) { 
     height = 1;
   }
-  if (IsOpenGLContextAttached) {
+  if (_IsOpenGLContextAttached) {
     glViewport(0, 0, width, height);
   }
 }
 
 internal void win32_timer_init() {
   AssertNoReentry();
-  QueryPerformanceFrequency(&GlobalPerfFrequency);
+  QueryPerformanceFrequency(&_PerformanceFrequency);
 }
 
 internal void win32_timer_start(PerformanceTimer* timer) {
@@ -142,7 +147,7 @@ internal void win32_timer_start(PerformanceTimer* timer) {
 internal void win32_timer_end(PerformanceTimer* timer) {
   QueryPerformanceCounter(&timer->end);
   LONGLONG difference = timer->end.QuadPart - timer->start.QuadPart;
-  timer->elapsed_seconds = (f32)difference / (f32)GlobalPerfFrequency.QuadPart;
+  timer->elapsed_seconds = (f32)difference / (f32)_PerformanceFrequency.QuadPart;
 }
 
 
@@ -157,7 +162,13 @@ internal HWND win32_window_create(HINSTANCE hInstance, s32 width, s32 height) {
     
   RegisterClass(&wc);
     
-  result = CreateWindow("OpenGLWindow", APP_NAME,
+#ifdef F_WINDOW_NAME
+  LPCSTR app_name = F_WINDOW_NAME;
+#else
+  LPCSTR app_name = "f_program";
+#endif
+
+  result = CreateWindow("OpenGLWindow", app_name,
                         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                         CW_USEDEFAULT, CW_USEDEFAULT, width, height,
                         NULL, NULL, hInstance, NULL);
@@ -211,20 +222,20 @@ internal void win32_set_cursor_position(s32 x, s32 y) {
 internal void win32_lock_cursor(b32 lock) {
   if (lock) {
     RECT rect;
-    GetClientRect(WindowHandle, &rect);
+    GetClientRect(_WindowHandle, &rect);
     POINT center = {(rect.right - rect.left) / 2, (rect.bottom - rect.top) / 2};
-    ClientToScreen(WindowHandle, &center);
+    ClientToScreen(_WindowHandle, &center);
     SetCursorPos(center.x, center.y);
 
     IsCursorLocked      = true;
     IgnoreNextMouseMove = true;
 
     // Reset deltas to avoid cursor jump
-    GlobalInput.mouse_current.delta_x  = 0.0f;
-    GlobalInput.mouse_current.delta_y  = 0.0f;
-    GlobalInput.mouse_previous.delta_x = 0.0f;
-    GlobalInput.mouse_previous.delta_y = 0.0f;
-    MemoryCopyStruct(&GlobalInput.mouse_previous, &GlobalInput.mouse_current);
+    _InputState.mouse_current.delta_x  = 0.0f;
+    _InputState.mouse_current.delta_y  = 0.0f;
+    _InputState.mouse_previous.delta_x = 0.0f;
+    _InputState.mouse_previous.delta_y = 0.0f;
+    MemoryCopyStruct(&_InputState.mouse_previous, &_InputState.mouse_current);
   } else {
     IsCursorLocked = false;
   }
@@ -239,8 +250,8 @@ internal void win32_hide_cursor(b32 hide) {
 
 internal b32 attach_opengl_context() {
   b32 result = true;
-  DeviceContextHandle = GetDC(WindowHandle);
-  if (!DeviceContextHandle) {
+  _DeviceContextHandle = GetDC(_WindowHandle);
+  if (!_DeviceContextHandle) {
     ERROR_MESSAGE_AND_EXIT("Failed to get device context\n");
     return false;
   }
@@ -253,22 +264,22 @@ internal b32 attach_opengl_context() {
     PFD_MAIN_PLANE, 0, 0, 0, 0
   };
 
-  s32 pixelFormat = ChoosePixelFormat(DeviceContextHandle, &pfd);
+  s32 pixelFormat = ChoosePixelFormat(_DeviceContextHandle, &pfd);
   if (!pixelFormat) {
     ERROR_MESSAGE_AND_EXIT("Failed to choose pixel format\n");
     return false;
   }
-  if (!SetPixelFormat(DeviceContextHandle, pixelFormat, &pfd)) {
+  if (!SetPixelFormat(_DeviceContextHandle, pixelFormat, &pfd)) {
     ERROR_MESSAGE_AND_EXIT("Failed to set pixel format\n");
     return false;
   }
 
-  HGLRC tempRC = wglCreateContext(DeviceContextHandle);
+  HGLRC tempRC = wglCreateContext(_DeviceContextHandle);
   if (!tempRC) {
     ERROR_MESSAGE_AND_EXIT("Failed to create temporary context\n");
     return false;
   }
-  if (!wglMakeCurrent(DeviceContextHandle, tempRC)) {
+  if (!wglMakeCurrent(_DeviceContextHandle, tempRC)) {
     ERROR_MESSAGE_AND_EXIT("Failed to make temporary context current\n");
     return false;
   }
@@ -289,8 +300,8 @@ internal b32 attach_opengl_context() {
     0 // End
   };
 
-  RenderingContextHandle = wglCreateContextAttribsARB(DeviceContextHandle, NULL, attribs);
-  if (!RenderingContextHandle) {
+  _RenderingContextHandle = wglCreateContextAttribsARB(_DeviceContextHandle, NULL, attribs);
+  if (!_RenderingContextHandle) {
     ERROR_MESSAGE_AND_EXIT("Failed to create OpenGL 4.6 context\n");
     wglDeleteContext(tempRC);
     return false;
@@ -298,7 +309,7 @@ internal b32 attach_opengl_context() {
 
   wglMakeCurrent(NULL, NULL);
   wglDeleteContext(tempRC);
-  if (!wglMakeCurrent(DeviceContextHandle, RenderingContextHandle)) {
+  if (!wglMakeCurrent(_DeviceContextHandle, _RenderingContextHandle)) {
     ERROR_MESSAGE_AND_EXIT("Failed to make OpenGL 4.6 context current\n");
     return false;
   }
@@ -309,7 +320,7 @@ internal b32 attach_opengl_context() {
   }
 
   printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
-  IsOpenGLContextAttached = true;
+  _IsOpenGLContextAttached = true;
   return result;
 }
 
@@ -318,12 +329,12 @@ internal void attach_console_output() {
   FILE* fp;
   freopen_s(&fp, "CONOUT$", "w", stdout);
   freopen_s(&fp, "CONOUT$", "w", stderr);
-  IsTerminalAttached = true;
+  _IsTerminalAttached = true;
 }
 
 internal f32 _get_elapsed_time(void) {
   LARGE_INTEGER current;
   QueryPerformanceCounter(&current);
-  LONGLONG ticks = current.QuadPart - Timer_ElapsedTime.start.QuadPart;
-  return (f32)ticks / (f32)GlobalPerfFrequency.QuadPart;
+  LONGLONG ticks = current.QuadPart - _Timer_ElapsedTime.start.QuadPart;
+  return (f32)ticks / (f32)_PerformanceFrequency.QuadPart;
 }

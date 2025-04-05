@@ -1,10 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#define CAMERA_SENSITIVITY 1.0f
 #define WORLD_UP           vec3f32(0.0f, 1.0f, 0.0f)
 #define WORLD_RIGHT        vec3f32(1.0f, 0.0f, 0.0f)
-#define CAMERA_SPEED       8.0f
 
 typedef enum Camera_Mode {
   CameraMode_Select,
@@ -28,15 +26,13 @@ typedef struct Camera {
   Camera_Mode mode;
 } Camera;
 
-Camera GlobalCamera;
-
-internal void    camera_init();
-internal void    camera_update(f32 delta_time);
-internal Vec3f32 camera_get_forward();
-internal Vec3f32 camera_get_right();
-internal Vec3f32 camera_get_up();
-internal Mat4f32 camera_get_view_matrix();
-internal void    camera_look_at(Vec3f32 target);
-internal void    camera_set_euler(f32 pitch, f32 yaw, f32 roll);
+internal void    camera_init(Camera* camera);
+internal void    camera_update(Camera* camera, f32 delta_time);
+internal Vec3f32 camera_get_forward(Camera* camera);
+internal Vec3f32 camera_get_right(Camera* camera);
+internal Vec3f32 camera_get_up(Camera* camera);
+internal Mat4f32 camera_get_view_matrix(Camera* camera);
+internal void    camera_look_at(Camera* camera, Vec3f32 target);
+internal void    camera_set_euler(Camera* camera, f32 pitch, f32 yaw, f32 roll);
 
 #endif // CAMERA_H

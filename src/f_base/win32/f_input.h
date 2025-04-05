@@ -174,10 +174,10 @@ typedef struct Input_State {
   Mouse_State   mouse_previous;
 } Input_State;
 
-global Input_State GlobalInput;
+global Input_State _InputState;
 
-internal void input_init();
-internal void input_update();
+internal void _input_init();
+internal void _input_update();
 
 ///////////////////////
 //~ Keyboard keys
