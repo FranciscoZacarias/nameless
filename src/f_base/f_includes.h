@@ -6,7 +6,6 @@
 
   Enable opengl:        #define F_ENABLE_OPENGL 1
   Attach console:       #define F_ATTACH_CONSOLE
-  Enable input logging: #define F_ENABLE_INPUT_LOGGING 1
   Enable assert:        #define ENABLE_ASSERT 1
 
   Macros that provide Context:

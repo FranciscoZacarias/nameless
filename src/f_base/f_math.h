@@ -78,6 +78,7 @@ typedef struct Transformf32 {
 } Transformf32;
 #define transformf32(t,r,s) (Transformf32){t,r,s}
 
+// TODO(Fz): Colors should not be here, I think.
 #define Color_Red        vec4f32(1.0f,  0.0f,  0.0f,  1.0f)
 #define Color_Green      vec4f32(0.0f,  1.0f,  0.0f,  1.0f)
 #define Color_Blue       vec4f32(0.0f,  0.0f,  1.0f,  1.0f)
@@ -166,7 +167,7 @@ internal Mat4f32 matrix4_rotate_zyx(Vec3f32 radians);
 internal Mat4f32 matrix4_transpose(Mat4f32 m);
 internal Mat4f32 matrix4_scale(f32 x, f32 y, f32 z);
 internal Mat4f32 matrix4_frustum(f64 left, f64 right, f64 bottom, f64 top, f64 near_plane, f64 far_plane);
-internal Mat4f32 matrix4_perspective(f64 fovy, f64 window_width, f64 window_height, f64 near_plane, f64 far_plane);
+internal Mat4f32 matrix4_perspective(f32 fovy, f32 window_width, f32 window_height, f32 near_plane, f32 far_plane);
 internal Mat4f32 matrix4_ortographic(f64 left, f64 right, f64 bottom, f64 top, f64 near_plane, f64 far_plane);
 internal Mat4f32 matrix4_look_at(Vec3f32 eye, Vec3f32 target, Vec3f32 up);
 internal Mat4f32 matrix_from_quaternion(Quatf32 q);
@@ -194,6 +195,9 @@ internal Quatf32 quaternion_from_euler(f32 pitch, f32 yaw, f32 roll);
 internal void    euler_from_quaternion(Quatf32 q, f32* pitch, f32* yaw, f32* roll);
 internal Quatf32 quaternion_mul_matrix4(Quatf32 q, Mat4f32 mat);
 internal b32     quaternion_equals(Quatf32 p, Quatf32 q);
+internal Vec3f32 quaternion_rotate_vector(Quatf32 q, Vec3f32 v);
+internal Quatf32 quaternion_conjugate(Quatf32 q);
+internal f32     quaternion_dot(Quatf32 q1, Quatf32 q2);
 
 ///////////////////////
 //~ TODO(fz): Debug temp stuff

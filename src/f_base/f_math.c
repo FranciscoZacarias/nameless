@@ -729,26 +729,33 @@ internal Mat4f32 matrix4_frustum(f64 left, f64 right, f64 bottom, f64 top, f64 n
   return result;
 }
 
-internal Mat4f32 matrix4_perspective(f64 fovy, f64 window_width, f64 window_height, f64 near_plane, f64 far_plane) {
+// TODO(Fz): These don't need to be f64 
+internal Mat4f32 matrix4_perspective(f32 fov_degrees, f32 window_width, f32 window_height, f32 near_plane, f32 far_plane) {
   Mat4f32 result = { 0 };
   
-  f64 top = near_plane*tan(fovy*0.5);
-  f64 bottom = -top;
-  f64 right = top*(window_width/window_height);
-  f64 left = -right;
+  // FOV in degrees to FOVY in radians
+  f32 aspect = window_width / window_height;
+  f32 fov_rad = Radians(fov_degrees);
+  f32 half_fovy_rad = atan(tan(fov_rad / 2.0f) / aspect);
+  f32 fovy = half_fovy_rad * 2.0f;
+
+  f32 top = near_plane*tan(fovy*0.5);
+  f32 bottom = -top;
+  f32 right = top*(window_width/window_height);
+  f32 left = -right;
   
   // MatrixFrustum(-right, right, -top, top, near, far);
-  f32 rl = (f32)(right - left);
-  f32 tb = (f32)(top - bottom);
-  f32 fn = (f32)(far_plane - near_plane);
+  f32 rl = (right - left);
+  f32 tb = (top - bottom);
+  f32 fn = (far_plane - near_plane);
   
-  result.m0 = ((f32)near_plane*2.0f)/rl;
-  result.m5 = ((f32)near_plane*2.0f)/tb;
-  result.m8 = ((f32)right + (f32)left)/rl;
-  result.m9 = ((f32)top + (f32)bottom)/tb;
-  result.m10 = -((f32)far_plane + (f32)near_plane)/fn;
+  result.m0 = (near_plane*2.0f)/rl;
+  result.m5 = (near_plane*2.0f)/tb;
+  result.m8 = (right + left)/rl;
+  result.m9 = (top + bottom)/tb;
+  result.m10 = -(far_plane + near_plane)/fn;
   result.m11 = -1.0f;
-  result.m14 = -((f32)far_plane*(f32)near_plane*2.0f)/fn;
+  result.m14 = -(far_plane*near_plane*2.0f)/fn;
   
   return result;
 }
@@ -1316,4 +1323,21 @@ internal b32 quaternion_equals(Quatf32 p, Quatf32 q) {
                 ((f32_abs(p.w + q.w)) <= (EPSILON*fmaxf(1.0f, fmaxf(f32_abs(p.w), f32_abs(q.w))))));
 
   return result;
+}
+
+internal Vec3f32 quaternion_rotate_vector(Quatf32 q, Vec3f32 v) {
+  Quatf32 q_norm = quaternion_normalize(q);
+  Quatf32 v_q = {0.0f, v.x, v.y, v.z};
+  Quatf32 q_conj = quaternion_invert(q_norm);
+  Quatf32 temp = quaternion_multiply(q_norm, v_q);
+  Quatf32 result = quaternion_multiply(temp, q_conj);
+  return (Vec3f32){result.x, result.y, result.z};
+}
+
+internal Quatf32 quaternion_conjugate(Quatf32 q) {
+  return (Quatf32){q.w, -q.x, -q.y, -q.z};
+}
+
+internal f32 quaternion_dot(Quatf32 q1, Quatf32 q2) {
+  return q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q1.z * q2.z;
 }

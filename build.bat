@@ -2,7 +2,9 @@
 
 set compiler_and_entry=cl ..\src\main.c
 
-set cl_default_flags=/Isrc /nologo /FC /Zi
+REM Enable warnings with: /W4 /wd4201
+REM /wd4201 Ignores the compiler warning C4201 about nameless structs/unions
+set cl_default_flags=/Isrc /nologo /FC /Zi 
 
 set external_include= /I"..\src\f_base" ^
                       /I"..\src\f_base\external\opengl"

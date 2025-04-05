@@ -94,7 +94,7 @@ internal void  arena_free(Arena* arena) {
 }
 
 internal void arena_print(Arena *arena) {
-  f32 committed_percentage = ((double)arena->position / arena->commited) * 100.0;
+  f32 committed_percentage = ((f64)arena->position / arena->commited) * 100.0;
   printf("Arena { reserved: %llu, commited: %llu, commit_size: %llu, position: %llu, align: %llu, committed_percentage: %.2f%% }\n",
          arena->reserved, arena->commited, arena->commit_size, arena->position, arena->align, committed_percentage);
 }

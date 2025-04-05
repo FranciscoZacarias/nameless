@@ -252,7 +252,7 @@
 #define Max(A,B) (((A)>(B))?(A):(B))
 #define ClampTop(A,X) Min(A,X)
 #define ClampBot(X,B) Max(X,B)
-#define Clamp(min,val,max) (((val)<(min))?(min):((val)>(max))?(max):(val))
+#define Clamp(val,min,max) (((val)<(min))?(min):((val)>(max))?(max):(val))
 
 #define IntFromPtr(p) (u64)((u8*)p - (u8*)0)
 #define PtrFromInt(i) (void*)((u8*)0 + (i))
@@ -290,7 +290,7 @@
 
 #define local_persist static
 #define global        static
-#define internal       static
+#define internal      static
 
 ////////////////////////////////
 // Types 

@@ -16,7 +16,7 @@ internal void  memory_decommit(void* memory, u64 size) {
 }
 
 internal void  memory_release(void* memory, u64 size) {
-  VirtualFree(memory, 0, MEM_RELEASE);
+  VirtualFree(memory, size, MEM_RELEASE);
 }
 
 internal u64 memory_get_page_size() {
@@ -120,7 +120,7 @@ internal File_Data file_load(Arena* arena, String file_path) {
     return file;
   }
   
-  u64 size  = file_size(file_path);
+  u32 size  = file_size(file_path);
   file.size = size;
   file.data = ArenaPush(arena, char, size);
   MemoryZero(file.data, file.size);

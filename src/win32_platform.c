@@ -23,10 +23,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
     // Mouse Cursor
     case WM_MOUSEMOVE: {
-      _input_process_mouse_cursor(LOWORD(lParam), HIWORD(lParam));
+      if (IgnoreNextMouseMove) {
+        IgnoreNextMouseMove = false;
+        return 0;
+      }
+      s32 x = LOWORD(lParam);
+      s32 y = HIWORD(lParam);
+      _input_process_mouse_cursor((f32)x, (f32)y);
       return 0;
     } break;
-
     
     // Mouse Buttons
     case WM_LBUTTONDOWN: {
@@ -92,13 +97,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   win32_timer_start(&Timer_DeltaTime);
   win32_timer_start(&Timer_FrameTime);
   
-
   application_init();
 
   MSG msg;
   while (true) {
     // Measure true frame time
-    win32_timer_end(&Timer_FrameTime);
     win32_timer_start(&Timer_FrameTime);
 
     if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -108,9 +111,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
 
     // Measure gameplay delta time
-    win32_timer_end(&Timer_DeltaTime);
     win32_timer_start(&Timer_DeltaTime);
     application_tick();
+
+    win32_timer_end(&Timer_DeltaTime);
+    win32_timer_end(&Timer_FrameTime);
   }
 
   return (s32)msg.wParam;
@@ -199,11 +204,44 @@ internal void win32_set_cursor(CursorType cursor) {
   }
 }
 
+internal void win32_set_cursor_position(s32 x, s32 y) {
+  SetCursorPos(x, y);
+}
+
+internal void win32_lock_cursor(b32 lock) {
+  if (lock) {
+    RECT rect;
+    GetClientRect(WindowHandle, &rect);
+    POINT center = {(rect.right - rect.left) / 2, (rect.bottom - rect.top) / 2};
+    ClientToScreen(WindowHandle, &center);
+    SetCursorPos(center.x, center.y);
+
+    IsCursorLocked      = true;
+    IgnoreNextMouseMove = true;
+
+    // Reset deltas to avoid cursor jump
+    GlobalInput.mouse_current.delta_x  = 0.0f;
+    GlobalInput.mouse_current.delta_y  = 0.0f;
+    GlobalInput.mouse_previous.delta_x = 0.0f;
+    GlobalInput.mouse_previous.delta_y = 0.0f;
+    MemoryCopyStruct(&GlobalInput.mouse_previous, &GlobalInput.mouse_current);
+  } else {
+    IsCursorLocked = false;
+  }
+}
+
+internal void win32_hide_cursor(b32 hide) {
+  // Win32 quirk. It has an internal counter required to show the cursor.
+  // The while loops just make sure it exhausts the counter and applies immediately.
+  while (ShowCursor(hide ? FALSE : TRUE) >= 0 &&  hide);
+  while (ShowCursor(hide ? FALSE : TRUE) < 0  && !hide);
+}
+
 internal b32 attach_opengl_context() {
   b32 result = true;
   DeviceContextHandle = GetDC(WindowHandle);
   if (!DeviceContextHandle) {
-    printf("Failed to get device context\n");
+    ERROR_MESSAGE_AND_EXIT("Failed to get device context\n");
     return false;
   }
 
@@ -217,21 +255,21 @@ internal b32 attach_opengl_context() {
 
   s32 pixelFormat = ChoosePixelFormat(DeviceContextHandle, &pfd);
   if (!pixelFormat) {
-    printf("Failed to choose pixel format\n");
+    ERROR_MESSAGE_AND_EXIT("Failed to choose pixel format\n");
     return false;
   }
   if (!SetPixelFormat(DeviceContextHandle, pixelFormat, &pfd)) {
-    printf("Failed to set pixel format\n");
+    ERROR_MESSAGE_AND_EXIT("Failed to set pixel format\n");
     return false;
   }
 
   HGLRC tempRC = wglCreateContext(DeviceContextHandle);
   if (!tempRC) {
-    printf("Failed to create temporary context\n");
+    ERROR_MESSAGE_AND_EXIT("Failed to create temporary context\n");
     return false;
   }
   if (!wglMakeCurrent(DeviceContextHandle, tempRC)) {
-    printf("Failed to make temporary context current\n");
+    ERROR_MESSAGE_AND_EXIT("Failed to make temporary context current\n");
     return false;
   }
 
@@ -239,7 +277,7 @@ internal b32 attach_opengl_context() {
   PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 
   if (!wglCreateContextAttribsARB) {
-    printf("wglCreateContextAttribsARB not supported\n");
+    ERROR_MESSAGE_AND_EXIT("wglCreateContextAttribsARB not supported\n");
     wglDeleteContext(tempRC);
     return false;
   }
@@ -253,7 +291,7 @@ internal b32 attach_opengl_context() {
 
   RenderingContextHandle = wglCreateContextAttribsARB(DeviceContextHandle, NULL, attribs);
   if (!RenderingContextHandle) {
-    printf("Failed to create OpenGL 4.6 context\n");
+    ERROR_MESSAGE_AND_EXIT("Failed to create OpenGL 4.6 context\n");
     wglDeleteContext(tempRC);
     return false;
   }
@@ -261,12 +299,12 @@ internal b32 attach_opengl_context() {
   wglMakeCurrent(NULL, NULL);
   wglDeleteContext(tempRC);
   if (!wglMakeCurrent(DeviceContextHandle, RenderingContextHandle)) {
-    printf("Failed to make OpenGL 4.6 context current\n");
+    ERROR_MESSAGE_AND_EXIT("Failed to make OpenGL 4.6 context current\n");
     return false;
   }
 
   if (!gladLoadGL()) {
-    printf("Failed to initialize GLAD\n");
+    ERROR_MESSAGE_AND_EXIT("Failed to initialize GLAD\n");
     return false;
   }
 

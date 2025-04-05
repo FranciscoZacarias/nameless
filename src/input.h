@@ -157,6 +157,13 @@ typedef struct Mouse_State {
     };
     Vec2f32 screen_space;
   };
+  union {
+    struct {
+      f32 delta_x;
+      f32 delta_y;
+    };
+    Vec2f32 delta;
+  };
   b8 buttons[MouseButton_Count];
 } Mouse_State;
 
@@ -167,11 +174,12 @@ typedef struct Input_State {
   Mouse_State   mouse_previous;
 } Input_State;
 
-global Input_State InputState;
+global Input_State GlobalInput;
 
 internal void input_init();
 internal void input_update();
 
+///////////////////////
 //~ Keyboard keys
 internal b32   input_is_key_up(Keyboard_Key key);
 internal b32   input_is_key_down(Keyboard_Key key);
@@ -180,6 +188,7 @@ internal b32   input_was_key_down(Keyboard_Key key);
 internal b32   input_is_key_pressed(Keyboard_Key key);
 internal void _input_process_keyboard_key(Keyboard_Key key, b8 is_pressed);
 
+///////////////////////
 //~ Mouse Buttons
 internal b32   input_is_button_up(Mouse_Button button);
 internal b32   input_is_button_down(Mouse_Button button);

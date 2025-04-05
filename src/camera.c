@@ -1,108 +1,105 @@
 
-internal void camera_init(Camera* camera) {
+internal void camera_init() {
   AssertNoReentry();
     
-  camera->position    = vec3f32(0.0f, 0.0f, 5.0f);  // Closer, above origin
-  camera->orientation = quatf32_identity();
-  camera->fov         = 45.0f;
-  camera->mode        = CameraMode_Select;
-  camera_set_euler(camera, 0.0f, 0.0f, 0.0f);  // Look straight at origin
+  GlobalCamera.position    = vec3f32(0.0f, 0.0f, 5.0f);
+  GlobalCamera.orientation = quatf32_identity();
+  GlobalCamera.fov         = 90.0f;
+  GlobalCamera.mode        = CameraMode_Select;
+  camera_set_euler(0.0f, 0.0f, 0.0f);
 }
 
-internal void camera_update(Camera* camera, f32 delta_time) {
+internal void camera_update(f32 delta_time) {
   local_persist b32 was_right_mouse_button_down = 0;
+
   if (input_is_button_down(MouseButton_Right)) {
     if (!was_right_mouse_button_down) {
-      InputState.mouse_previous.screen_space_x = InputState.mouse_current.screen_space_x;
-      InputState.mouse_previous.screen_space_y = InputState.mouse_current.screen_space_y;
+      GlobalInput.mouse_previous.screen_space_x = GlobalInput.mouse_current.screen_space_x;
+      GlobalInput.mouse_previous.screen_space_y = GlobalInput.mouse_current.screen_space_y;
       was_right_mouse_button_down = 1;
+      win32_lock_cursor(true);
+      win32_hide_cursor(true);
     }
-    camera->mode = CameraMode_Fly;
+
+    GlobalCamera.mode = CameraMode_Fly;
 
     f32 camera_speed = (f32)(CAMERA_SPEED * delta_time);
-    Vec3f32 forward  = camera_get_forward(camera);
-    Vec3f32 right    = camera_get_right(camera);
-    Vec3f32 up       = camera_get_up(camera);
-        
-    if (input_is_key_down(KeyboardKey_W)) camera->position = vector3_add(camera->position, vector3_scale(forward, camera_speed));
-    if (input_is_key_down(KeyboardKey_S)) camera->position = vector3_sub(camera->position, vector3_scale(forward, camera_speed));
-    if (input_is_key_down(KeyboardKey_D)) camera->position = vector3_add(camera->position, vector3_scale(right, camera_speed));
-    if (input_is_key_down(KeyboardKey_A)) camera->position = vector3_sub(camera->position, vector3_scale(right, camera_speed));
-    if (input_is_key_down(KeyboardKey_E)) camera->position = vector3_add(camera->position, vector3_scale(up, camera_speed));
-    if (input_is_key_down(KeyboardKey_Q)) camera->position = vector3_sub(camera->position, vector3_scale(up, camera_speed));
 
+    Vec3f32 forward = camera_get_forward();
+    Vec3f32 right   = camera_get_right();
+    Vec3f32 up      = camera_get_up();
+
+    if (input_is_key_down(KeyboardKey_W)) GlobalCamera.position = vector3_add(GlobalCamera.position, vector3_scale(forward, camera_speed));
+    if (input_is_key_down(KeyboardKey_S)) GlobalCamera.position = vector3_sub(GlobalCamera.position, vector3_scale(forward, camera_speed));
+    if (input_is_key_down(KeyboardKey_D)) GlobalCamera.position = vector3_add(GlobalCamera.position, vector3_scale(right, camera_speed));
+    if (input_is_key_down(KeyboardKey_A)) GlobalCamera.position = vector3_sub(GlobalCamera.position, vector3_scale(right, camera_speed));
+    if (input_is_key_down(KeyboardKey_E)) GlobalCamera.position = vector3_add(GlobalCamera.position, vector3_scale(up, camera_speed));
+    if (input_is_key_down(KeyboardKey_Q)) GlobalCamera.position = vector3_sub(GlobalCamera.position, vector3_scale(up, camera_speed));
+
+    // Mouse look
+    f32 sensitivity = 0.0015f * CAMERA_SENSITIVITY;
+    f32 dx = GlobalInput.mouse_current.delta_x;
+    f32 dy = GlobalInput.mouse_current.delta_y;
+
+    f32 yaw   = -dx * sensitivity;
+    f32 pitch = -dy * sensitivity;
+
+    Quatf32 yaw_rotation   = quaternion_from_axis_angle((Vec3f32){0.0f, 1.0f, 0.0f}, yaw);
+    Vec3f32 camera_right   = camera_get_right();
+    Quatf32 pitch_rotation = quaternion_from_axis_angle(camera_right, pitch);
+
+    GlobalCamera.orientation = quaternion_multiply(yaw_rotation, quaternion_multiply(pitch_rotation, GlobalCamera.orientation));
+    GlobalCamera.orientation = quaternion_normalize(GlobalCamera.orientation);
+
+    RECT rect;
+    GetClientRect(WindowHandle, &rect);
+    POINT center = {(rect.right - rect.left) / 2, (rect.bottom - rect.top) / 2};
+    ClientToScreen(WindowHandle, &center);
+    SetCursorPos(center.x, center.y);
+
+    // Manually set current mouse position to center (so next frame delta is correct)
+    GlobalInput.mouse_current.screen_space_x = (f32)((rect.right - rect.left) / 2);
+    GlobalInput.mouse_current.screen_space_y = (f32)((rect.bottom - rect.top) / 2);
   } else {
-    camera->mode = CameraMode_Select;
+    GlobalCamera.mode = CameraMode_Select;
     was_right_mouse_button_down = 0;
+    win32_lock_cursor(false);
+    win32_hide_cursor(false);
   }
 }
 
-internal void camera_mouse_callback(Camera* camera, f64 x_pos, f64 y_pos) {
-  if (camera->mode != CameraMode_Fly) return;
-    
-  local_persist f32 last_x = 0.0f;
-  local_persist f32 last_y = 0.0f;
-  local_persist b32 first_mouse = true;
-    
-  if (first_mouse) {
-    last_x = (f32)x_pos;
-    last_y = (f32)y_pos;
-    first_mouse = false;
-  }
-    
-  f32 x_offset = ((f32)x_pos - last_x) * CAMERA_SENSITIVITY;
-  f32 y_offset = (last_y - (f32)y_pos) * CAMERA_SENSITIVITY * -1.0f; // TODO(Fz): Extract -1.0f (invert Y) into program args
-    
-  last_x = (f32)x_pos;
-  last_y = (f32)y_pos;
-    
-  Quatf32 yaw   = quaternion_from_axis_angle(WORLD_UP, -Radians(x_offset));
-  Vec3f32 right = camera_get_right(camera);
-  Quatf32 pitch = quaternion_from_axis_angle(right, -Radians(y_offset));
-
-  print_quatf32(&yaw, "yaw");
-  print_vec3f32(&right, "right");
-  print_quatf32(&pitch, "pitch");
-    
-  camera->orientation = quaternion_multiply(yaw, camera->orientation);
-  camera->orientation = quaternion_multiply(pitch, camera->orientation);
-  camera->orientation = quaternion_normalize(camera->orientation);
-
-  print_quatf32(&camera->orientation, "orientation");
-}
-
-internal Vec3f32 camera_get_forward(Camera* camera) {
-  Mat4f32 rot     = matrix_from_quaternion(camera->orientation);
+internal Vec3f32 camera_get_forward() {
+  Mat4f32 rot     = matrix_from_quaternion(GlobalCamera.orientation);
   Vec3f32 forward = {0.0f, 0.0f, -1.0f};
   return vector3_normalize(mat4f32_transform_vec3f32(rot, forward));
 }
 
-internal Vec3f32 camera_get_right(Camera* camera) {
-  Mat4f32 rot   = matrix_from_quaternion(camera->orientation);
+internal Vec3f32 camera_get_right() {
+  Mat4f32 rot   = matrix_from_quaternion(GlobalCamera.orientation);
   Vec3f32 right = {1.0f, 0.0f, 0.0f};
   return vector3_normalize(mat4f32_transform_vec3f32(rot, right));
 }
 
-internal Vec3f32 camera_get_up(Camera* camera) {
-  Mat4f32 rot = matrix_from_quaternion(camera->orientation);
+internal Vec3f32 camera_get_up() {
+  Mat4f32 rot = matrix_from_quaternion(GlobalCamera.orientation);
   Vec3f32 up  = {0.0f, 1.0f, 0.0f};
   return vector3_normalize(mat4f32_transform_vec3f32(rot, up));
 }
 
-internal Mat4f32 camera_get_view_matrix(Camera* camera) {
-  Vec3f32 forward = camera_get_forward(camera);
-  Vec3f32 up      = camera_get_up(camera);
-  Vec3f32 target  = vector3_add(camera->position, forward);
-  Mat4f32 result  = matrix4_look_at(camera->position, target, up);
+internal Mat4f32 camera_get_view_matrix() {
+  Vec3f32 forward = camera_get_forward();
+  Vec3f32 up      = camera_get_up();
+  Vec3f32 target  = vector3_add(GlobalCamera.position, forward);
+  Mat4f32 result  = matrix4_look_at(GlobalCamera.position, target, up);
   return result;
 }
 
-internal void camera_look_at(Camera* camera, Vec3f32 target) {
-  Vec3f32 direction   = vector3_normalize(vector3_sub(target, camera->position));
+internal void camera_look_at(Vec3f32 target) {
+  Vec3f32 direction   = vector3_normalize(vector3_sub(target, GlobalCamera.position));
   Vec3f32 forward     = {0.0f, 0.0f, -1.0f};
-  camera->orientation = quaternion_from_vector3_to_vector3(forward, direction);
+  GlobalCamera.orientation = quaternion_from_vector3_to_vector3(forward, direction);
 }
 
-internal void camera_set_euler(Camera* camera, f32 pitch, f32 yaw, f32 roll) {
-  camera->orientation = quaternion_from_euler(pitch, yaw, roll);
+internal void camera_set_euler(f32 pitch, f32 yaw, f32 roll) {
+  GlobalCamera.orientation = quaternion_from_euler(pitch, yaw, roll);
 }

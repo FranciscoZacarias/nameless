@@ -22,8 +22,6 @@
 #include "camera.h"
 #include "renderer.h"
 
-Camera GlobalCamera;
-
 //~ *.c
 #include "win32_platform.c"
 #include "input.c"

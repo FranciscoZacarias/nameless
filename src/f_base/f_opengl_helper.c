@@ -3,7 +3,7 @@ internal OGL_Shader ogl_make_shader(String source_path, GLenum kind) {
   OGL_Shader result  = glCreateShader(kind);
   GLenum error       = glGetError();
   if (error != GL_NO_ERROR) {
-    printf("Error %u in glCreateShader.\n", error);
+    ERROR_MESSAGE_AND_EXIT("Error %u in glCreateShader.\n", error);
   }
     
   File_Data shader_source = file_load(scratch.arena, source_path);
