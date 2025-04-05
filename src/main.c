@@ -24,9 +24,22 @@ void application_tick() {
   renderer_begin_frame();
   camera_update(DeltaTime);
 
-  Transformf32 t = transformf32(vec3f32(0.0f, 0.0f, 0.0f), quatf32_identity(), vec3f32(1.0f, 1.0f, 1.0f));
-  renderer_push_triangle(t, vec4f32(1.0f, 0.0f, 0.0f, 1.0f));
-    
+  f32 angle = sin(ElapsedTime);
+  Vec3f32 axis = vec3f32(0.0f, 0.0f, 1.0f);
+  Quatf32 rotation = quaternion_from_axis_angle(axis, angle);
+  Vec3f32 axis2 = vec3f32(1.0f, 0.0f, 0.0f);
+  Quatf32 rotation2 = quaternion_from_axis_angle(axis2, angle);
+
+  f32 offset = 0.5f;
+  for(f32 z = 0; z < 1; z += 0.1f) {
+    for(f32 y = 0; y < 1; y += 0.1f) {
+      for(f32 x = 0; x < 1; x += 0.1f) {
+        Transformf32 t = transformf32(vec3f32(x - offset, y - offset, z - offset), rotation, vec3f32(0.1f, 0.1f, 0.1f));
+        renderer_push_triangle(t, vec4f32(x, y, z, 1.0f));
+      }
+    }
+  }
+
   Mat4f32 view = camera_get_view_matrix();
   Mat4f32 projection = matrix4_perspective(GlobalCamera.fov, (f32)WINDOW_WIDTH, (f32)WINDOW_HEIGHT, 0.1f, 100.0f);
 
