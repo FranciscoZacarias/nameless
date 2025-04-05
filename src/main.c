@@ -27,8 +27,6 @@ void application_tick() {
   f32 angle = sin(ElapsedTime);
   Vec3f32 axis = vec3f32(0.0f, 0.0f, 1.0f);
   Quatf32 rotation = quaternion_from_axis_angle(axis, angle);
-  Vec3f32 axis2 = vec3f32(1.0f, 0.0f, 0.0f);
-  Quatf32 rotation2 = quaternion_from_axis_angle(axis2, angle);
 
   f32 offset = 0.5f;
   for(f32 z = 0; z < 1; z += 0.1f) {
