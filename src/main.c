@@ -13,7 +13,6 @@
 */
 
 void application_init() {
-  thread_context_init_and_attach(&main_thread_context);
   renderer_init();
   camera_init(&GlobalCamera);
 }
@@ -39,7 +38,7 @@ void application_tick() {
   }
 
   Mat4f32 view = camera_get_view_matrix(&GlobalCamera);
-  Mat4f32 projection = mat4f32_perspective(GlobalCamera.fov, (f32)WINDOW_WIDTH, (f32)WINDOW_HEIGHT, 0.1f, 100.0f);
+  Mat4f32 projection = mat4f32_perspective(GlobalCamera.fov, (f32)FZ_WINDOW_WIDTH, (f32)FZ_WINDOW_HEIGHT, 0.1f, 100.0f);
 
   renderer_end_frame(view, projection);
 }

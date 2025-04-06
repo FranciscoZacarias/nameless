@@ -5,6 +5,12 @@
 #define FRAGMENT_SHADER_PATH "D:/work/nameless/src/shaders/fragment_shader.glsl"
 
 ///////////////////////
+//~ OpenGL structures
+
+global GLuint Vao, Vbo, Instanced_Vbo;
+global OGL_Shader ShaderProgram;
+
+///////////////////////
 //~ Renderer Primitives 
 
 // Instanced Triangle

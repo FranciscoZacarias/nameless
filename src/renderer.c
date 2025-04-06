@@ -1,9 +1,6 @@
 internal void renderer_init() {
   AssertNoReentry();
 
-  const GLubyte* glversion = glGetString(GL_VERSION);
-  printf("Opengl version: %s\n", glversion);
-
   glEnable(GL_DEPTH_TEST);
 
   // Opengl Shaders and Program
