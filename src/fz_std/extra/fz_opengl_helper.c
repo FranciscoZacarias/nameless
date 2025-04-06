@@ -50,7 +50,7 @@ internal OGL_Shader ogl_make_program(GLuint *shaders, u32 count) {
 internal void renderer_set_uniform_mat4fv(u32 program, const char* uniform, Mat4f32 mat) {
   s32 uniform_location = glGetUniformLocation(program, uniform);
   if (uniform_location == -1) {
-    printf("Mat4f32 :: Uniform %s not found\n", uniform);
+    printf("Mat4f32 :: Uniform %s not found for program %d\n", uniform, program);
   }
   glUniformMatrix4fv(uniform_location, 1, 1, &mat.data[0][0]);
 }
