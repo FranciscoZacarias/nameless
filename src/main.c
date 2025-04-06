@@ -26,7 +26,7 @@ void application_tick() {
 
   f32 angle = sin(ElapsedTime);
   Vec3f32 axis = vec3f32(0.0f, 0.0f, 1.0f);
-  Quatf32 rotation = quaternion_from_axis_angle(axis, angle);
+  Quatf32 rotation = quatf32_from_axis_angle(axis, angle);
 
   f32 offset = 0.5f;
   for(f32 z = 0; z < 1; z += 0.1f) {
@@ -39,7 +39,7 @@ void application_tick() {
   }
 
   Mat4f32 view = camera_get_view_matrix(&GlobalCamera);
-  Mat4f32 projection = matrix4_perspective(GlobalCamera.fov, (f32)WINDOW_WIDTH, (f32)WINDOW_HEIGHT, 0.1f, 100.0f);
+  Mat4f32 projection = mat4f32_perspective(GlobalCamera.fov, (f32)WINDOW_WIDTH, (f32)WINDOW_HEIGHT, 0.1f, 100.0f);
 
   renderer_end_frame(view, projection);
 }

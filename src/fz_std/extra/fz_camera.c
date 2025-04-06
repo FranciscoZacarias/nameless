@@ -1,4 +1,3 @@
-
 internal void camera_init(Camera* camera) {
   AssertNoReentry();
     
@@ -33,12 +32,12 @@ internal void camera_update(Camera* camera, f32 delta_time) {
     Vec3f32 right   = camera_get_right(camera);
     Vec3f32 up      = camera_get_up(camera);
 
-    if (input_is_key_down(KeyboardKey_W)) camera->position = vector3_add(camera->position, vector3_scale(forward, camera_speed));
-    if (input_is_key_down(KeyboardKey_S)) camera->position = vector3_sub(camera->position, vector3_scale(forward, camera_speed));
-    if (input_is_key_down(KeyboardKey_D)) camera->position = vector3_add(camera->position, vector3_scale(right, camera_speed));
-    if (input_is_key_down(KeyboardKey_A)) camera->position = vector3_sub(camera->position, vector3_scale(right, camera_speed));
-    if (input_is_key_down(KeyboardKey_E)) camera->position = vector3_add(camera->position, vector3_scale(up, camera_speed));
-    if (input_is_key_down(KeyboardKey_Q)) camera->position = vector3_sub(camera->position, vector3_scale(up, camera_speed));
+    if (input_is_key_down(KeyboardKey_W)) camera->position = vec3f32_add(camera->position, vec3f32_scale(forward, camera_speed));
+    if (input_is_key_down(KeyboardKey_S)) camera->position = vec3f32_sub(camera->position, vec3f32_scale(forward, camera_speed));
+    if (input_is_key_down(KeyboardKey_D)) camera->position = vec3f32_add(camera->position, vec3f32_scale(right, camera_speed));
+    if (input_is_key_down(KeyboardKey_A)) camera->position = vec3f32_sub(camera->position, vec3f32_scale(right, camera_speed));
+    if (input_is_key_down(KeyboardKey_E)) camera->position = vec3f32_add(camera->position, vec3f32_scale(up, camera_speed));
+    if (input_is_key_down(KeyboardKey_Q)) camera->position = vec3f32_sub(camera->position, vec3f32_scale(up, camera_speed));
 
     // Mouse look
     f32 sensitivity = 0.0015f;
@@ -52,12 +51,12 @@ internal void camera_update(Camera* camera, f32 delta_time) {
     f32 yaw   = -dx * sensitivity;
     f32 pitch = -dy * sensitivity;
 
-    Quatf32 yaw_rotation   = quaternion_from_axis_angle((Vec3f32){0.0f, 1.0f, 0.0f}, yaw);
+    Quatf32 yaw_rotation   = quatf32_from_axis_angle((Vec3f32){0.0f, 1.0f, 0.0f}, yaw);
     Vec3f32 camera_right   = camera_get_right(camera);
-    Quatf32 pitch_rotation = quaternion_from_axis_angle(camera_right, pitch);
+    Quatf32 pitch_rotation = quatf32_from_axis_angle(camera_right, pitch);
 
-    camera->orientation = quaternion_multiply(yaw_rotation, quaternion_multiply(pitch_rotation, camera->orientation));
-    camera->orientation = quaternion_normalize(camera->orientation);
+    camera->orientation = quatf32_multiply(yaw_rotation, quatf32_multiply(pitch_rotation, camera->orientation));
+    camera->orientation = quatf32_normalize(camera->orientation);
 
     RECT rect;
     GetClientRect(_WindowHandle, &rect);
@@ -77,37 +76,37 @@ internal void camera_update(Camera* camera, f32 delta_time) {
 }
 
 internal Vec3f32 camera_get_forward(Camera* camera) {
-  Mat4f32 rot     = matrix_from_quaternion(camera->orientation);
+  Mat4f32 rot     = mat4f32_from_quatf32(camera->orientation);
   Vec3f32 forward = {0.0f, 0.0f, -1.0f};
-  return vector3_normalize(mat4f32_transform_vec3f32(rot, forward));
+  return vec3f32_normalize(mat4f32_transform_vec3f32(rot, forward));
 }
 
 internal Vec3f32 camera_get_right(Camera* camera) {
-  Mat4f32 rot   = matrix_from_quaternion(camera->orientation);
+  Mat4f32 rot   = mat4f32_from_quatf32(camera->orientation);
   Vec3f32 right = {1.0f, 0.0f, 0.0f};
-  return vector3_normalize(mat4f32_transform_vec3f32(rot, right));
+  return vec3f32_normalize(mat4f32_transform_vec3f32(rot, right));
 }
 
 internal Vec3f32 camera_get_up(Camera* camera) {
-  Mat4f32 rot = matrix_from_quaternion(camera->orientation);
+  Mat4f32 rot = mat4f32_from_quatf32(camera->orientation);
   Vec3f32 up  = {0.0f, 1.0f, 0.0f};
-  return vector3_normalize(mat4f32_transform_vec3f32(rot, up));
+  return vec3f32_normalize(mat4f32_transform_vec3f32(rot, up));
 }
 
 internal Mat4f32 camera_get_view_matrix(Camera* camera) {
   Vec3f32 forward = camera_get_forward(camera);
   Vec3f32 up      = camera_get_up(camera);
-  Vec3f32 target  = vector3_add(camera->position, forward);
-  Mat4f32 result  = matrix4_look_at(camera->position, target, up);
+  Vec3f32 target  = vec3f32_add(camera->position, forward);
+  Mat4f32 result  = mat4f32_look_at(camera->position, target, up);
   return result;
 }
 
 internal void camera_look_at(Camera* camera, Vec3f32 target) {
-  Vec3f32 direction   = vector3_normalize(vector3_sub(target, camera->position));
+  Vec3f32 direction   = vec3f32_normalize(vec3f32_sub(target, camera->position));
   Vec3f32 forward     = {0.0f, 0.0f, -1.0f};
-  camera->orientation = quaternion_from_vector3_to_vector3(forward, direction);
+  camera->orientation = quatf32_from_vec3f32_to_vec3f32(forward, direction);
 }
 
 internal void camera_set_euler(Camera* camera, f32 pitch, f32 yaw, f32 roll) {
-  camera->orientation = quaternion_from_euler(pitch, yaw, roll);
+  camera->orientation = quatf32_from_euler(pitch, yaw, roll);
 }

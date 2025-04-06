@@ -1,5 +1,5 @@
-#ifndef F_STRING_H
-#define F_STRING_H
+#ifndef FZ_STRING_H
+#define FZ_STRING_H
 
 typedef struct String {
   u64  size;
@@ -25,15 +25,15 @@ internal String string_new(u64 size, char* str);
 internal String string_format(String fmt, ...);
 internal String string_range(char* first, char* range);
 internal String string_concat(Arena* arena, String a, String b);
-internal String string_trim(String str) { return str; } // TODO(fz): Implement 
-internal b32    string_contains(String str, String substring) { return false; } // TODO(fz): Implement 
-internal s64    string_find_first(String str, String substring) { return 0; } // TODO(fz): Implement 
-internal s64    string_find_last(String str, String substring) { return 0; } // TODO(fz): Implement 
+internal String string_trim(String str);
+internal b32    string_contains(String str, String substring);
+internal s64    string_find_first(String str, String substring);
+internal s64    string_find_last(String str, String substring); 
 internal b32    string_equal(String a, String b);
 
 internal String_List string_split(Arena* arena, String str, String split_character);
-internal String      string_list_pop(String_List* list) {} // TODO(fz): Implement
-internal void        string_list_clear(String_List* list) {} // TODO(fz): Implement
+internal String      string_list_pop(String_List* list);
+internal void        string_list_clear(String_List* list);
 internal void        string_list_push(Arena* arena, String_List* list, String str);
 
 internal b32 cast_string_to_f32(String str, f32* value);
@@ -51,4 +51,4 @@ internal b32 char_is_space(char c);
 internal char char_to_upper(char c);
 internal char char_to_lower(char c);
 
-#endif // F_STRING_H
+#endif // FZ_STRING_H

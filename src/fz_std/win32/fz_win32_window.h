@@ -1,5 +1,5 @@
-#ifndef WIN32_PLATFORM_H
-#define WIN32_PLATFORM_H
+#ifndef FZ_WIN32_PLATFORM_H
+#define FZ_WIN32_PLATFORM_H
 
 ///////////////////////
 //~ Application space
@@ -72,4 +72,4 @@ global b32 _IsTerminalAttached      = false;
 internal b32  attach_opengl_context();
 internal void attach_console_output();
 
-#endif // WIN32_PLATFORM_H
+#endif // FZ_WIN32_PLATFORM_H

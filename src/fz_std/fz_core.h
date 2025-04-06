@@ -1,5 +1,5 @@
-#ifndef F_CORE_H
-#define F_CORE_H
+#ifndef FZ_CORE_H
+#define FZ_CORE_H
 
 ////////////////////////////////
 // Context Cracking
@@ -7,7 +7,7 @@
 /* 
   Macro quick look-up:
 
-  F_ENABLE_ASSERT
+  FZ_ENABLE_ASSERT
 
   COMPILER_CLANG
   COMPILER_MSVC
@@ -236,7 +236,7 @@
 # endif
 #endif
 
-#if F_ENABLE_ASSERT
+#if FZ_ENABLE_ASSERT
 # define Assert(condition) Statement( if (!(condition)){ AssertBreak(condition); } )
 # define AssertNoReentry() Statement(local_persist b32 triggered = 0;Assert(triggered == 0); triggered = 1;) 
 #else
@@ -331,4 +331,4 @@ typedef double f64;
 typedef s8  b8;
 typedef s32 b32;
 
-#endif // F_CORE_H
+#endif // FZ_CORE_H

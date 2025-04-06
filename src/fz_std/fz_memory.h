@@ -1,6 +1,5 @@
-
-#ifndef F_MEMORY_H
-#define F_MEMORY_H
+#ifndef FZ_MEMORY_H
+#define FZ_MEMORY_H
 
 #ifndef ARENA_RESERVE_SIZE
 # define ARENA_RESERVE_SIZE Megabytes(64)
@@ -42,4 +41,4 @@ typedef struct Arena_Temp {
 internal Arena_Temp arena_temp_begin(Arena* arena);
 internal void       arena_temp_end(Arena_Temp* temp);
 
-#endif // F_MEMORY_H
+#endif // FZ_MEMORY_H

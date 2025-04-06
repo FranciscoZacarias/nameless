@@ -13,6 +13,12 @@ internal String string_range(char* first, char* range) {
   return result;
 }
 
+internal String string_concat(Arena* arena, String a, String b) { printf("%s not implemented", __func__);  return StringLiteral(""); };  // TODO(fz): Implement 
+internal String string_trim(String str)                         { printf("%s not implemented", __func__);  return StringLiteral(""); } // TODO(fz): Implement 
+internal b32    string_contains(String str, String substring)   { printf("%s not implemented", __func__);  return false; } // TODO(fz): Implement 
+internal s64    string_find_first(String str, String substring) { printf("%s not implemented", __func__);  return 0; } // TODO(fz): Implement 
+internal s64    string_find_last(String str, String substring)  { printf("%s not implemented", __func__);  return 0; } // TODO(fz): Implement 
+
 internal b32 string_equal(String a, String b) {
   if (a.size != b.size) {
     return 0;

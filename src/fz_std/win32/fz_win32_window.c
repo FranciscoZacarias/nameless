@@ -73,21 +73,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 // NOTE(fz): App entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     
-#if F_ENABLE_WINDOW
+#if FZ_ENABLE_WINDOW
   _WindowHandle = win32_window_create(hInstance, WINDOW_WIDTH, WINDOW_HEIGHT);
   if (!_WindowHandle) {
     return 1;
   }
 #endif 
 
-#if F_ENABLE_OPENGL
+#if FZ_ENABLE_OPENGL
   if (!attach_opengl_context()) {
     return 1;
   }
 #endif
 
   // TODO(fz): Should be togglable
-#if F_ENABLE_CONSOLE
+#if FZ_ENABLE_CONSOLE
   attach_console_output();
 #endif
 
@@ -162,8 +162,8 @@ internal HWND win32_window_create(HINSTANCE hInstance, s32 width, s32 height) {
     
   RegisterClass(&wc);
     
-#ifdef F_WINDOW_NAME
-  LPCSTR app_name = F_WINDOW_NAME;
+#ifdef FZ_WINDOW_NAME
+  LPCSTR app_name = FZ_WINDOW_NAME;
 #else
   LPCSTR app_name = "f_program";
 #endif

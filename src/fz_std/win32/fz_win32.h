@@ -1,5 +1,5 @@
-#ifndef F_WIN32_H
-#define F_WIN32_H
+#ifndef FZ_WIN32_H
+#define FZ_WIN32_H
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -54,4 +54,4 @@ internal void print_string(String string); // TODO(fz): This should be abstracte
 #define ERROR_MESSAGE_AND_EXIT(fmt, ...) _error_message_and_exit(__FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
 internal void _error_message_and_exit(const char *file, int line, const char *func, const char *fmt, ...);
 
-#endif // F_WIN32_H
+#endif // FZ_WIN32_H

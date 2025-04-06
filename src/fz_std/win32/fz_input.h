@@ -1,5 +1,5 @@
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef FZ_INPUT_H
+#define FZ_INPUT_H
 
 typedef enum Mouse_Button {
   MouseButton_Left,
@@ -198,4 +198,4 @@ internal b32   input_is_button_pressed(Mouse_Button button);
 internal void _input_process_mouse_button(Mouse_Button button, b32 is_pressed);
 internal void _input_process_mouse_cursor(s32 x, s32 y);
 
-#endif //INPUT_H
+#endif // FZ_INPUT_H
