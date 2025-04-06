@@ -22,8 +22,8 @@ internal void camera_update(Camera* camera, f32 delta_time) {
 
     camera->mode = CameraMode_Fly;
 
-#ifdef CAMERA_SPEED
-    f32 camera_speed = (f32)(CAMERA_SPEED * delta_time);
+#ifdef FZ_CAMERA_SPEED
+    f32 camera_speed = (f32)(FZ_CAMERA_SPEED * delta_time);
 #else
     f32 camera_speed = (f32)(8.0f * delta_time);
 #endif
@@ -41,8 +41,8 @@ internal void camera_update(Camera* camera, f32 delta_time) {
 
     // Mouse look
     f32 sensitivity = 0.0015f;
-#ifdef CAMERA_SENSITIVITY
-    sensitivity *= CAMERA_SENSITIVITY;
+#ifdef FZ_CAMERA_SENSITIVITY
+    sensitivity *= FZ_CAMERA_SENSITIVITY;
 #endif
 
     f32 dx = _InputState.mouse_current.delta_x;

@@ -1,4 +1,5 @@
 internal void application_stop() {
+  IsApplicationRunning = false;
   PostQuitMessage(0);
 }
 
@@ -27,7 +28,6 @@ internal u64 memory_get_page_size() {
 }
 
 //~ File handling
-
 internal HANDLE _win32_get_file_handle_read(String file_path) {
   HANDLE file_handle = CreateFileA(file_path.str, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
   if (file_handle == INVALID_HANDLE_VALUE) {
