@@ -151,3 +151,84 @@ internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color) {
     printf("Too many Lines! Consider increasing the buffer.\n");
   }
 }
+
+internal void renderer_push_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color) {
+  
+  f32 head_length = 0.2f;
+
+  renderer_push_line(start, end, color);
+
+  Vec3f32 dir = vec3f32_sub(end, start);
+  f32 len = vec3f32_length(dir);
+  if (len < 0.0001f) return;
+
+  dir = vec3f32_normalize(dir);
+
+  Vec3f32 up = fabsf(dir.y) < 0.99f ? vec3f32(0,1,0) : vec3f32(1,0,0);
+
+  Vec3f32 right   = vec3f32_normalize(vec3f32_cross(up, dir));
+  Vec3f32 forward = vec3f32_cross(dir, right);
+
+  right   = vec3f32_scale(right, head_length);
+  forward = vec3f32_scale(forward, head_length);
+  Vec3f32 tip  = end;
+  Vec3f32 base = vec3f32_sub(tip, vec3f32_scale(dir, head_length));
+
+  // Two arrowhead lines
+  renderer_push_line(tip, vec3f32_add(base, right),   color);
+  renderer_push_line(tip, vec3f32_sub(base, right),   color);
+  renderer_push_line(tip, vec3f32_add(base, forward), color);
+  renderer_push_line(tip, vec3f32_sub(base, forward), color);
+}
+
+internal void renderer_push_box(Vec3f32 min, Vec3f32 max, Vec4f32 color) {
+  Vec3f32 corners[8] = {
+    { min.x, min.y, min.z },
+    { max.x, min.y, min.z },
+    { max.x, max.y, min.z },
+    { min.x, max.y, min.z },
+    { min.x, min.y, max.z },
+    { max.x, min.y, max.z },
+    { max.x, max.y, max.z },
+    { min.x, max.y, max.z },
+  };
+
+  u32 edges[12][2] = {
+    {0, 1}, {1, 2}, {2, 3}, {3, 0}, // bottom
+    {4, 5}, {5, 6}, {6, 7}, {7, 4}, // top
+    {0, 4}, {1, 5}, {2, 6}, {3, 7}, // verticals
+  };
+
+  for (u32 i = 0; i < 12; ++i) {
+    renderer_push_line(corners[edges[i][0]], corners[edges[i][1]], color);
+  }
+}
+
+internal void renderer_push_grid(Vec3f32 center, Vec3f32 normal, f32 spacing, s32 count, Vec4f32 color) {
+  if (count <= 0) return;
+
+  Vec3f32 N = vec3f32_normalize(normal);
+
+  // Find two perpendicular vectors U, V to form the grid plane
+  Vec3f32 temp = fabsf(N.y) < 0.99f ? vec3f32(0,1,0) : vec3f32(1,0,0);
+  Vec3f32 U = vec3f32_normalize(vec3f32_cross(temp, N));
+  Vec3f32 V = vec3f32_cross(N, U); // already orthonormal
+
+  s32 half = count / 2;
+
+  for (s32 i = -half; i <= half; i++) {
+    f32 offset = i * spacing;
+    Vec3f32 offsetU = vec3f32_scale(U, offset);
+    Vec3f32 offsetV = vec3f32_scale(V, offset);
+
+    // Line parallel to U (sweeps along V)
+    Vec3f32 p0 = vec3f32_add(center, vec3f32_add(vec3f32_scale(V, -half * spacing), offsetU));
+    Vec3f32 p1 = vec3f32_add(center, vec3f32_add(vec3f32_scale(V,  half * spacing), offsetU));
+    renderer_push_line(p0, p1, color);
+
+    // Line parallel to V (sweeps along U)
+    Vec3f32 q0 = vec3f32_add(center, vec3f32_add(vec3f32_scale(U, -half * spacing), offsetV));
+    Vec3f32 q1 = vec3f32_add(center, vec3f32_add(vec3f32_scale(U,  half * spacing), offsetV));
+    renderer_push_line(q0, q1, color);
+  }
+}

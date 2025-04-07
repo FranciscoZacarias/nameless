@@ -95,6 +95,10 @@ typedef struct Transformf32 {
 #define Color_Brown      vec4f32(0.6f,  0.4f,  0.2f,  1.0f)
 #define Color_Pink       vec4f32(1.0f,  0.75f, 0.8f,  1.0f)
 
+#define AXIS_X vec3f32(1.0f, 0.0f, 0.0f)
+#define AXIS_Y vec3f32(0.0f, 1.0f, 0.0f)
+#define AXIS_Z vec3f32(0.0f, 0.0f, 1.0f)
+
 internal f32 f32_min(f32 a, f32 b);
 internal f32 f32_max(f32 a, f32 b);
 internal f32 f32_abs(f32 value);

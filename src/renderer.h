@@ -63,5 +63,8 @@ internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 // Renderer primitives
 internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color);
 internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color);
+internal void renderer_push_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
+internal void renderer_push_box(Vec3f32 min, Vec3f32 max, Vec4f32 color);
+internal void renderer_push_grid(Vec3f32 center, Vec3f32 normal, f32 spacing, s32 count, Vec4f32 color);
 
 #endif // RENDERER_H
