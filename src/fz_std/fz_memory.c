@@ -95,9 +95,10 @@ internal void  arena_free(Arena* arena) {
 }
 
 internal void print_arena(Arena *arena, const char* label) {
-  f32 committed_percentage = ((f64)arena->position / arena->commited) * 100.0;
-  printf("%s: Arena { reserved: %llu, commited: %llu, commit_size: %llu, position: %llu, align: %llu, committed_percentage: %.2f%% }\n",
-         label, arena->reserved, arena->commited, arena->commit_size, arena->position, arena->align, committed_percentage);
+  f32 committed_percentage = ((f64)arena->position / arena->commited) * 100.0f;
+  f32 reserved_percentage  = ((f64)arena->position / arena->reserved) * 100.0f;
+  printf("%s: Arena { reserved: %llu, commited: %llu, commit_size: %llu, position: %llu, align: %llu, committed_percentage: %.2f%%, reserved_percentage: %.2f%% }\n",
+         label, arena->reserved, arena->commited, arena->commit_size, arena->position, arena->align, committed_percentage, reserved_percentage);
 }
 
 internal Arena_Temp arena_temp_begin(Arena* arena) {

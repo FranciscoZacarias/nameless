@@ -5,7 +5,7 @@
   
   HIGH PRIORITY:
   1. Set the renderer so that it's not immediate mode rendering.
-  2. Add Points and Quads as rendering primitives
+  2. Triangle primitive should not take a transform.
 
   ELSE:
   - Add Texture rendering
@@ -15,6 +15,8 @@
 void application_init() {
   renderer_init();
   camera_init(&GlobalCamera);
+  GlobalCamera.position = vec3f32(0.0f, 5.0f, 10.0f);
+  camera_look_at(&GlobalCamera, vec3f32(0.0f, 0.0f, 0.0f));
 }
 
 void application_tick() {
@@ -39,7 +41,11 @@ void application_tick() {
     for(f32 y = 0; y < 2; y += 0.2f) {
       for(f32 x = -1; x < 1; x += 0.2f) {
         Transformf32 t = transformf32(vec3f32(x, y, z), rotation, vec3f32(0.1f, 0.1f, 0.1f));
-        renderer_push_triangle(t, vec4f32(x, y, z, 1.0f));
+        if ((s32)(y*10) % 4 == 0) {
+          renderer_push_triangle(t, vec4f32(x, y, z, 1.0f));
+        } else {
+          renderer_push_quad(t, vec4f32(x, y, z, 1.0f));
+        }
       }
     }
   }
@@ -53,5 +59,8 @@ void application_tick() {
 internal void input_update() {
   if (input_is_key_pressed(KeyboardKey_ESCAPE)) {
     application_stop();
+  }
+  if (input_is_key_pressed(KeyboardKey_K)) {
+    print_arena(Renderer.arena, "Renderer Arena");
   }
 }

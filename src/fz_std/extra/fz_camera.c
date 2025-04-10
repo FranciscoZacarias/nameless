@@ -5,7 +5,6 @@ internal void camera_init(Camera* camera) {
   camera->orientation = quatf32_identity();
   camera->fov         = 90.0f;
   camera->mode        = CameraMode_Select;
-  camera_set_euler(camera, 0.0f, 0.0f, 0.0f);
 }
 
 internal void camera_update(Camera* camera, f32 delta_time) {

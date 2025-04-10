@@ -1204,6 +1204,43 @@ internal Quatf32 quatf32_from_axis_angle(Vec3f32 axis, f32 angle) {
   return result;
 }
 
+internal Quatf32 quatf32_from_basis(Vec3f32 right, Vec3f32 up, Vec3f32 forward) {
+  f32 m00 = right.x,  m01 = up.x,  m02 = forward.x;
+  f32 m10 = right.y,  m11 = up.y,  m12 = forward.y;
+  f32 m20 = right.z,  m21 = up.z,  m22 = forward.z;
+
+  f32 trace = m00 + m11 + m22;
+  Quatf32 q;
+
+  if (trace > 0.0f) {
+    f32 s = sqrtf(trace + 1.0f) * 2.0f;
+    q.w = 0.25f * s;
+    q.x = (m21 - m12) / s;
+    q.y = (m02 - m20) / s;
+    q.z = (m10 - m01) / s;
+  } else if (m00 > m11 && m00 > m22) {
+    f32 s = sqrtf(1.0f + m00 - m11 - m22) * 2.0f;
+    q.w = (m21 - m12) / s;
+    q.x = 0.25f * s;
+    q.y = (m01 + m10) / s;
+    q.z = (m02 + m20) / s;
+  } else if (m11 > m22) {
+    f32 s = sqrtf(1.0f + m11 - m00 - m22) * 2.0f;
+    q.w = (m02 - m20) / s;
+    q.x = (m01 + m10) / s;
+    q.y = 0.25f * s;
+    q.z = (m12 + m21) / s;
+  } else {
+    f32 s = sqrtf(1.0f + m22 - m00 - m11) * 2.0f;
+    q.w = (m10 - m01) / s;
+    q.x = (m02 + m20) / s;
+    q.y = (m12 + m21) / s;
+    q.z = 0.25f * s;
+  }
+
+  return q;
+}
+
 internal void axis_angle_from_quatf32(Quatf32 q, Vec3f32 *axis, f32 *angle) {
   if (f32_abs(q.w) > 1.0f) {
     f32 length = sqrtf(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
