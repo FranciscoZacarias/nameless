@@ -31,20 +31,20 @@ void application_tick() {
   renderer_push_arrow(vec3f32(0.0f, -6.0f, 0.0f), vec3f32(0.0f, 6.0f, 0.0f), Color_Green);
   renderer_push_arrow(vec3f32(0.0f, 0.0f, -6.0f), vec3f32(0.0f, 0.0f, 6.0f), Color_Blue);
 
-  renderer_push_box(vec3f32(-1.1f, -0.1f, -1.1f), vec3f32(1.1f, 1.9f, 1.1f), Color_Yellow);
+  renderer_push_box(vec3f32(-0.1f, 0.0f, -0.1f), vec3f32(6.1f, 6.1f, 6.1f), Color_Yellow);
 
   Quatf32 x_rot = quatf32_from_axis_angle(AXIS_X, ElapsedTime);
   Quatf32 y_rot = quatf32_from_axis_angle(AXIS_Y, ElapsedTime);
   Quatf32 rotation = quatf32_multiply(x_rot, y_rot);
 
-  for(f32 z = -1; z < 1; z += 0.2f) {
-    for(f32 y = 0; y < 2; y += 0.2f) {
-      for(f32 x = -1; x < 1; x += 0.2f) {
+  for(f32 z = 0; z < 6; z += 0.2f) {
+    for(f32 y = 0; y < 6; y += 0.2f) {
+      for(f32 x = 0; x < 6; x += 0.2f) {
         Transformf32 t = transformf32(vec3f32(x, y, z), rotation, vec3f32(0.1f, 0.1f, 0.1f));
         if ((s32)(y*10) % 4 == 0) {
-          renderer_push_triangle(t, vec4f32(x, y, z, 1.0f));
+          renderer_push_triangle(t, vec4f32(sin(x), cos(y), tan(z), 1.0f));
         } else {
-          renderer_push_quad(t, vec4f32(x, y, z, 1.0f));
+          renderer_push_quad(t, vec4f32(tan(x), sin(y), cos(z), 1.0f));
         }
       }
     }

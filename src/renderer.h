@@ -18,15 +18,25 @@ typedef struct Line_Instance {
 } Line_Instance;
 
 global GLuint VAO_Line;
-global GLuint VBO_Line;
 global GLuint VBO_LineInstance;
 
 // Instanced Triangle
+typedef enum Instanced_Type {
+  Instanced_Triangle,
+  Instanced_Quad,
+} Instanced_Type;
+
+#define RENDERER_MAX_INSTANCED_DATA Megabytes(8)
+typedef struct Instanced_Data {
+  Transformf32 transform;
+  Vec4f32 color;
+  u32 texture_id;
+} Instanced_Data;
+
 #define RENDERER_MAX_TRIANGLES Megabytes(2)*3
 typedef struct Triangle_Instance {
   Transformf32 transform;
   Vec4f32 color;
-  GLuint texture_id; // 0 means no texture
 } Triangle_Instance;
 
 global GLuint VAO_Triangle;
@@ -71,15 +81,6 @@ typedef struct Renderer_State {
 
 global Renderer_State Renderer;
 
-// Textures
-typedef struct Texture {
-  GLuint id;
-  String path;
-} Texture;
-
-global Texture textures[64];
-global u32 texture_count = 0;
-
 // Renderer core functions
 internal void renderer_init();
 internal void renderer_begin_frame();
@@ -88,7 +89,7 @@ internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 // Renderer primitives
 internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color);
-internal void renderer_push_triangle_texture(Transformf32 transform, Vec4f32 color, GLuint texture_id);internal void renderer_push_quad(Transformf32 transform, Vec4f32 color);
+internal void renderer_push_quad(Transformf32 transform, Vec4f32 color);
 internal void renderer_push_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 internal void renderer_push_box(Vec3f32 min, Vec3f32 max, Vec4f32 color);
 internal void renderer_push_grid(Vec3f32 center, Vec3f32 normal, f32 spacing, s32 count, Vec4f32 color);

@@ -5,16 +5,20 @@ internal void renderer_init() {
   Renderer.arena = arena_init();
 
   glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
 
   OGL_Shader fragment_shader = ogl_make_shader(StringLiteral(FRAGMENT_SHADER_PATH), GL_FRAGMENT_SHADER);
 
   OGL_Shader raw_vertex_shader = ogl_make_shader(StringLiteral(RAW_VERTEX_SHADER_PATH), GL_VERTEX_SHADER);
-  GLuint raw_shaders[] = { raw_vertex_shader, fragment_shader };
-  RawProgram           = ogl_make_program(raw_shaders, 2);
+  OGL_Shader raw_shaders[] = { raw_vertex_shader, fragment_shader };
+  RawProgram               = ogl_make_program(raw_shaders, 2);
+  ogl_delete_shader(raw_vertex_shader);
 
   OGL_Shader instanced_vertex_shader = ogl_make_shader(StringLiteral(INSTANCED_VERTEX_SHADER_PATH), GL_VERTEX_SHADER);
   GLuint instanced_shaders[] = { instanced_vertex_shader, fragment_shader };
   InstancedProgram           = ogl_make_program(instanced_shaders, 2);
+  ogl_delete_shader(instanced_vertex_shader);
+  ogl_delete_shader(fragment_shader);
 
   // Lines Setup
   {
@@ -228,20 +232,15 @@ internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color) {
   }
 }
 
-internal void renderer_push_triangle_texture(Transformf32 transform, Vec4f32 color, GLuint texture_id) {
+internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color) {
   if (Renderer.triangles_count < Renderer.triangles_max) {
     Triangle_Instance* triangle_instance = &Renderer.triangles_data[Renderer.triangles_count];
-    triangle_instance->transform = transform;
-    triangle_instance->color = color;
-    triangle_instance->texture_id = texture_id;
-    Renderer.triangles_count += 1;
+    triangle_instance->transform         = transform;
+    triangle_instance->color             = color;
+    Renderer.triangles_count            += 1;
   } else {
     printf("Too many Triangles! Consider increasing the buffer.\n");
   }
-}
-
-internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color) {
-  renderer_push_triangle_texture(transform, color, 0);
 }
 
 internal void renderer_push_quad(Transformf32 transform, Vec4f32 color) {

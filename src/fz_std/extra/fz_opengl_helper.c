@@ -24,7 +24,7 @@ internal OGL_Shader ogl_make_shader(String source_path, GLenum kind) {
   return result;
 }
 
-internal OGL_Shader ogl_make_program(GLuint *shaders, u32 count) {
+internal OGL_Shader ogl_make_program(OGL_Shader *shaders, u32 count) {
   OGL_Shader result = glCreateProgram();
   
   for (u32 i = 0; i < count; i += 1){
@@ -53,4 +53,8 @@ internal void renderer_set_uniform_mat4fv(u32 program, const char* uniform, Mat4
     printf("Mat4f32 :: Uniform %s not found for program %d\n", uniform, program);
   }
   glUniformMatrix4fv(uniform_location, 1, 1, &mat.data[0][0]);
+}
+
+internal void ogl_delete_shader(OGL_Shader shader) {
+  glDeleteShader(shader);
 }
