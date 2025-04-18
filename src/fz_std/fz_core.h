@@ -275,7 +275,6 @@
 #define IsPow2(x)          ((x)!=0 && ((x)&((x)-1))==0)
 #define IsPow2OrZero(x)    ((((x) - 1)&(x)) == 0)
 
-
 #define MemoryCopy(dst, src, size) memcpy((dst), (src), (size))
 #define MemoryMove(dst, src, size) memmove((dst), (src), (size))
 #define MemorySet(dst, val, size)  memset((dst), (val), (size))

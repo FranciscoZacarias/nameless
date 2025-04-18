@@ -2,7 +2,7 @@ internal void renderer_init() {
   AssertNoReentry();
 
   MemoryZeroStruct(&Renderer);
-  Renderer.arena = arena_init();
+  Renderer.arena = arena_init_sized(Gigabytes(1), ARENA_COMMIT_SIZE);
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
@@ -22,146 +22,139 @@ internal void renderer_init() {
 
   // Lines Setup
   {
-    Assert(RENDERER_MAX_LINES % 2 == 0);
     Renderer.lines_max   = RENDERER_MAX_LINES;
     Renderer.lines_data  = ArenaPush(Renderer.arena, Line_Instance, RENDERER_MAX_LINES);
     Renderer.lines_count = 0;
 
-    glGenVertexArrays(1, &VAO_Line);
-    glGenBuffers(1, &VBO_LineInstance);
-    glBindVertexArray(VAO_Line);
+    glGenVertexArrays(1, &Vao_Line);
+    glGenBuffers(1, &Vbo_LineInstance);
+    glBindVertexArray(Vao_Line);
     {
-      glBindBuffer(GL_ARRAY_BUFFER, VBO_LineInstance);
+      glBindBuffer(GL_ARRAY_BUFFER, Vbo_LineInstance);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(Line_Instance) * Renderer.lines_max, NULL, GL_STREAM_DRAW);
       glEnableVertexAttribArray(0);
       glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Line_Instance), (void*)OffsetOfMember(Line_Instance, start));
+      glVertexAttribDivisor(0, 1);
       glEnableVertexAttribArray(1);
       glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Line_Instance), (void*)OffsetOfMember(Line_Instance, end));
+      glVertexAttribDivisor(1, 1);
       glEnableVertexAttribArray(2);
       glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Line_Instance), (void*)OffsetOfMember(Line_Instance, color));
-      glVertexAttribDivisor(0, 1);
-      glVertexAttribDivisor(1, 1);
       glVertexAttribDivisor(2, 1);
     }
     glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
   }
 
-  // Triangles Setup
+  // Instanced Primitives Setup
   {
-    Assert(RENDERER_MAX_TRIANGLES % 3 == 0);
-    Renderer.triangles_max = RENDERER_MAX_TRIANGLES / 3;
-    Renderer.triangles_data = ArenaPush(Renderer.arena, Triangle_Instance, RENDERER_MAX_TRIANGLES);
-    Renderer.triangles_count = 0;
+    Renderer.instanced_max   = RENDERER_MAX_INSTANCED_DATA;
+    Renderer.instanced_data  = ArenaPush(Renderer.arena, Instanced_Data, RENDERER_MAX_INSTANCED_DATA);
+    Renderer.instanced_count = 0;
+    Renderer.triangle_count  = 0;
+    Renderer.quad_count      = 0;
 
-    Vec3f32 base_triangle_positions[] = {
-      vec3f32( 0.0f,  0.577f, 0.0f), // Top
-      vec3f32(-0.5f, -0.289f, 0.0f), // Bottom-left
-      vec3f32( 0.5f, -0.289f, 0.0f), // Bottom-right
-    };
-    Vec2f32 base_triangle_texcoords[] = {
-      vec2f32(0.5f, 1.0f), // Top (center of texture)
-      vec2f32(0.0f, 0.0f), // Bottom-left
-      vec2f32(1.0f, 0.0f), // Bottom-right
-    };
+    // Shared instance buffer
+    glGenBuffers(1, &Vbo_InstancedData);
+    glBindBuffer(GL_ARRAY_BUFFER, Vbo_InstancedData);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Instanced_Data) * Renderer.instanced_max, NULL, GL_STREAM_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glGenVertexArrays(1, &VAO_Triangle);
-    glGenBuffers(1, &VBO_Triangle);
-    glGenBuffers(1, &VBO_TriangleInstance);
-    GLuint VBO_TriangleTexCoords;
-    glGenBuffers(1, &VBO_TriangleTexCoords);
-
-    glBindVertexArray(VAO_Triangle);
+    // Triangle Primitives
     {
-      // Positions
-      glBindBuffer(GL_ARRAY_BUFFER, VBO_Triangle);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(base_triangle_positions), base_triangle_positions, GL_STATIC_DRAW);
+      Vec3f32 unit_triangle[] = {
+        vec3f32( 0.0f,  0.577f, 0.0f),
+        vec3f32(-0.5f, -0.289f, 0.0f),
+        vec3f32( 0.5f, -0.289f, 0.0f),
+      };
+
+      glGenVertexArrays(1, &Vao_Triangle);
+      glGenBuffers(1, &Vbo_Triangle);
+      glBindVertexArray(Vao_Triangle);
+
+      // Unit triangle vertices (base_position, location 0)
+      glBindBuffer(GL_ARRAY_BUFFER, Vbo_Triangle);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(unit_triangle), unit_triangle, GL_STATIC_DRAW);
       glEnableVertexAttribArray(0);
       glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vec3f32), (void*)0);
 
-      // Texture coordinates
-      glBindBuffer(GL_ARRAY_BUFFER, VBO_TriangleTexCoords);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(base_triangle_texcoords), base_triangle_texcoords, GL_STATIC_DRAW);
-      glEnableVertexAttribArray(5); // New attribute for tex coords
-      glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2f32), (void*)0);
+      glBindBuffer(GL_ARRAY_BUFFER, Vbo_InstancedData);
+      glEnableVertexAttribArray(1);
+      glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Instanced_Data), (void*)OffsetOfMember(Instanced_Data, transform.translation));
+      glVertexAttribDivisor(1, 1);
+      glEnableVertexAttribArray(2);
+      glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Instanced_Data), (void*)OffsetOfMember(Instanced_Data, transform.rotation));
+      glVertexAttribDivisor(2, 1);
+      glEnableVertexAttribArray(3);
+      glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Instanced_Data), (void*)OffsetOfMember(Instanced_Data, transform.scale));
+      glVertexAttribDivisor(3, 1);
+      glEnableVertexAttribArray(4);
+      glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Instanced_Data), (void*)OffsetOfMember(Instanced_Data, color));
+      glVertexAttribDivisor(4, 1);
+      glEnableVertexAttribArray(5);
+      glVertexAttribIPointer(5, 1, GL_UNSIGNED_INT, sizeof(Instanced_Data), (void*)OffsetOfMember(Instanced_Data, texture_id));
+      glVertexAttribDivisor(5, 1);
 
-      // Instance data
-      glBindBuffer(GL_ARRAY_BUFFER, VBO_TriangleInstance);
-      {
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Triangle_Instance), (void*)OffsetOfMember(Triangle_Instance, transform.translation));
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Triangle_Instance), (void*)OffsetOfMember(Triangle_Instance, transform.rotation));
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Triangle_Instance), (void*)OffsetOfMember(Triangle_Instance, transform.scale));
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Triangle_Instance), (void*)OffsetOfMember(Triangle_Instance, color));
-        glVertexAttribDivisor(1, 1);
-        glVertexAttribDivisor(2, 1);
-        glVertexAttribDivisor(3, 1);
-        glVertexAttribDivisor(4, 1);
-      }
+      glBindVertexArray(0);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
-    glBindVertexArray(0);
-  }
 
-  // Quads Setup
-  {
-    Renderer.quads_max   = RENDERER_MAX_QUADS;
-    Renderer.quads_data  = ArenaPush(Renderer.arena, Quad_Instance, RENDERER_MAX_QUADS);
-    Renderer.quads_count = 0;
-
-    // Define a unit quad (centered at origin, 1x1 size)
-    Vec3f32 base_quad[] = {
+    // Quad Primitives
+    {
+      Vec3f32 unit_quad[] = {
         vec3f32(-0.5f, -0.5f, 0.0f), // Bottom-left
         vec3f32( 0.5f, -0.5f, 0.0f), // Bottom-right
         vec3f32( 0.5f,  0.5f, 0.0f), // Top-right
         vec3f32(-0.5f,  0.5f, 0.0f), // Top-left
-    };
+      };
+      u32 unit_quad_indices[] = { 0, 1, 2, 0, 2, 3 };
 
-    // Define indices for two triangles
-    u32 indices[] = {
-        0, 1, 2, // First triangle
-        0, 2, 3  // Second triangle
-    };
+      glGenVertexArrays(1, &Vao_Quad);
+      glGenBuffers(1, &Vbo_Quad);
+      glGenBuffers(1, &Ebo_Quad);
+      glBindVertexArray(Vao_Quad);
 
-    glGenVertexArrays(1, &VAO_Quad);
-    glGenBuffers(1, &VBO_Quad);
-    glGenBuffers(1, &VBO_QuadInstance);
-    GLuint EBO_Quad;
-    glGenBuffers(1, &EBO_Quad);
-
-    glBindVertexArray(VAO_Quad);
-    {
-      // Base quad vertices
-      glBindBuffer(GL_ARRAY_BUFFER, VBO_Quad);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(base_quad), base_quad, GL_STATIC_DRAW);
+      // Unit quad vertices (base_position, location 0)
+      glBindBuffer(GL_ARRAY_BUFFER, Vbo_Quad);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(unit_quad), unit_quad, GL_STATIC_DRAW);
       glEnableVertexAttribArray(0);
       glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vec3f32), (void*)0);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Ebo_Quad);
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unit_quad_indices), unit_quad_indices, GL_STATIC_DRAW);
 
-      // Element buffer for indices
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_Quad);
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+      glBindBuffer(GL_ARRAY_BUFFER, Vbo_InstancedData);
+      glEnableVertexAttribArray(1);
+      glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Instanced_Data), (void*)OffsetOfMember(Instanced_Data, transform.translation));
+      glVertexAttribDivisor(1, 1);
+      glEnableVertexAttribArray(2);
+      glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Instanced_Data), (void*)OffsetOfMember(Instanced_Data, transform.rotation));
+      glVertexAttribDivisor(2, 1);
+      glEnableVertexAttribArray(3);
+      glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Instanced_Data), (void*)OffsetOfMember(Instanced_Data, transform.scale));
+      glVertexAttribDivisor(3, 1);
+      glEnableVertexAttribArray(4);
+      glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Instanced_Data), (void*)OffsetOfMember(Instanced_Data, color));
+      glVertexAttribDivisor(4, 1);
+      glEnableVertexAttribArray(5);
+      glVertexAttribIPointer(5, 1, GL_UNSIGNED_INT, sizeof(Instanced_Data), (void*)OffsetOfMember(Instanced_Data, texture_id));
+      glVertexAttribDivisor(5, 1);
 
-      // Instance data (transform and color)
-      glBindBuffer(GL_ARRAY_BUFFER, VBO_QuadInstance);
-      {
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Quad_Instance), (void*)OffsetOfMember(Quad_Instance, transform.translation));
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Quad_Instance), (void*)OffsetOfMember(Quad_Instance, transform.rotation));
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Quad_Instance), (void*)OffsetOfMember(Quad_Instance, transform.scale));
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Quad_Instance), (void*)OffsetOfMember(Quad_Instance, color));
-        glVertexAttribDivisor(1, 1);
-        glVertexAttribDivisor(2, 1);
-        glVertexAttribDivisor(3, 1);
-        glVertexAttribDivisor(4, 1);
-      }
+      glBindVertexArray(0);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
-    glBindVertexArray(0);
+
+    // Texture setup
+    {
+      s32 max_gpu_textures;
+      glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_gpu_textures);
+      Renderer.texture_max   = max_gpu_textures;
+      Renderer.textures      = ArenaPush(Renderer.arena, GLuint, Renderer.texture_max);
+      Renderer.texture_count = 0;
+    }
   }
+
+  print_arena(Renderer.arena, "Arena");
 }
 
 internal void renderer_begin_frame() {
@@ -170,52 +163,41 @@ internal void renderer_begin_frame() {
 }
 
 internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection) {
-
   // Lines
   glUseProgram(RawProgram);
   {
     renderer_set_uniform_mat4fv(RawProgram, "view", view);
     renderer_set_uniform_mat4fv(RawProgram, "projection", projection);
-    if (Renderer.lines_count > 0) {
-      glBindVertexArray(VAO_Line);
-      glBindBuffer(GL_ARRAY_BUFFER, VBO_LineInstance);
-      glBufferData(GL_ARRAY_BUFFER, Renderer.lines_count * sizeof(Line_Instance), Renderer.lines_data, GL_STREAM_DRAW);
-      glDrawArraysInstanced(GL_LINES, 0, 2, Renderer.lines_count);
-      glBindVertexArray(0);
-    }
+    glBindVertexArray(Vao_Line);
+    glBindBuffer(GL_ARRAY_BUFFER, Vbo_LineInstance);
+    glBufferData(GL_ARRAY_BUFFER, Renderer.lines_count * sizeof(Line_Instance), Renderer.lines_data, GL_STREAM_DRAW);
+    glDrawArraysInstanced(GL_LINES, 0, 2, Renderer.lines_count);
+    glBindVertexArray(0);
   }
-  glBindVertexArray(0);
-  Renderer.lines_count = 0;
-  
-  // Triangles
-  glUseProgram(InstancedProgram);
-  {
-    renderer_set_uniform_mat4fv(InstancedProgram, "view", view);
-    renderer_set_uniform_mat4fv(InstancedProgram, "projection", projection);
-    if (Renderer.triangles_count > 0) {
-      glBindVertexArray(VAO_Triangle);
-      glBindBuffer(GL_ARRAY_BUFFER, VBO_TriangleInstance);
-      glBufferData(GL_ARRAY_BUFFER, Renderer.triangles_count * sizeof(Triangle_Instance), Renderer.triangles_data, GL_STREAM_DRAW);
-      glDrawArraysInstanced(GL_TRIANGLES, 0, 3, Renderer.triangles_count);
-    }
-  }
-  glBindVertexArray(0);
-  Renderer.triangles_count = 0;
 
-  // Quads
+  // Instanced Data
   glUseProgram(InstancedProgram);
   {
     renderer_set_uniform_mat4fv(InstancedProgram, "view", view);
     renderer_set_uniform_mat4fv(InstancedProgram, "projection", projection);
-    if (Renderer.quads_count > 0) {
-      glBindVertexArray(VAO_Quad);
-      glBindBuffer(GL_ARRAY_BUFFER, VBO_QuadInstance);
-      glBufferData(GL_ARRAY_BUFFER, Renderer.quads_count * sizeof(Quad_Instance), Renderer.quads_data, GL_STREAM_DRAW);
-      glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, Renderer.quads_count);
+    glBindBuffer(GL_ARRAY_BUFFER, Vbo_InstancedData);
+    glBufferData(GL_ARRAY_BUFFER, Renderer.instanced_count * sizeof(Instanced_Data), Renderer.instanced_data, GL_STREAM_DRAW);
+    if (Renderer.triangle_count > 0) {
+        glBindVertexArray(Vao_Triangle);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 3, Renderer.triangle_count);
     }
+    if (Renderer.quad_count > 0) {
+        glBindVertexArray(Vao_Quad);
+        glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, Renderer.quad_count);
+    }
+    glBindVertexArray(0);
   }
-  glBindVertexArray(0);
-  Renderer.quads_count = 0;
+
+  // Reset counters
+  Renderer.lines_count     = 0;
+  Renderer.instanced_count = 0;
+  Renderer.triangle_count  = 0;
+  Renderer.quad_count      = 0;
 
   SwapBuffers(_DeviceContextHandle);
 }
@@ -232,25 +214,29 @@ internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color) {
   }
 }
 
-internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color) {
-  if (Renderer.triangles_count < Renderer.triangles_max) {
-    Triangle_Instance* triangle_instance = &Renderer.triangles_data[Renderer.triangles_count];
-    triangle_instance->transform         = transform;
-    triangle_instance->color             = color;
-    Renderer.triangles_count            += 1;
+internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color, u32 texture_id) {
+  if (Renderer.instanced_count < Renderer.instanced_max) {
+    Instanced_Data* instance = &Renderer.instanced_data[Renderer.instanced_count];
+    instance->transform = transform;
+    instance->color = color;
+    instance->texture_id = texture_id;
+    Renderer.triangle_count++;
+    Renderer.instanced_count++;
   } else {
-    printf("Too many Triangles! Consider increasing the buffer.\n");
+    ERROR_MESSAGE_AND_EXIT("Maximum instanced data reached.\n");
   }
 }
 
-internal void renderer_push_quad(Transformf32 transform, Vec4f32 color) {
-  if (Renderer.quads_count < Renderer.quads_max) {
-    Quad_Instance* quad_instance = &Renderer.quads_data[Renderer.quads_count];
-    quad_instance->transform = transform;
-    quad_instance->color = color;
-    Renderer.quads_count += 1;
+internal void renderer_push_quad(Transformf32 transform, Vec4f32 color, u32 texture_id) {
+  if (Renderer.instanced_count < Renderer.instanced_max) {
+    Instanced_Data* instance = &Renderer.instanced_data[Renderer.instanced_count];
+    instance->transform = transform;
+    instance->color = color;
+    instance->texture_id = texture_id;
+    Renderer.quad_count++;
+    Renderer.instanced_count++;
   } else {
-    printf("Too many Quads! Consider increasing the buffer.\n");
+    ERROR_MESSAGE_AND_EXIT("Maximum instanced data reached.\n");
   }
 }
 
@@ -294,9 +280,9 @@ internal void renderer_push_box(Vec3f32 min, Vec3f32 max, Vec4f32 color) {
   };
 
   u32 edges[12][2] = {
-    {0, 1}, {1, 2}, {2, 3}, {3, 0}, // bottom
-    {4, 5}, {5, 6}, {6, 7}, {7, 4}, // top
-    {0, 4}, {1, 5}, {2, 6}, {3, 7}, // verticals
+    {0, 1}, {1, 2}, {2, 3}, {3, 0},
+    {4, 5}, {5, 6}, {6, 7}, {7, 4},
+    {0, 4}, {1, 5}, {2, 6}, {3, 7},
   };
 
   for (u32 i = 0; i < 12; ++i) {

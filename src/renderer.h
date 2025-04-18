@@ -15,10 +15,11 @@ typedef struct Line_Instance {
   Vec3f32 start;
   Vec3f32 end;
   Vec4f32 color;
+  u8 padding[8];
 } Line_Instance;
 
-global GLuint VAO_Line;
-global GLuint VBO_LineInstance;
+global GLuint Vao_Line;
+global GLuint Vbo_LineInstance;
 
 // Instanced Triangle
 typedef enum Instanced_Type {
@@ -26,33 +27,17 @@ typedef enum Instanced_Type {
   Instanced_Quad,
 } Instanced_Type;
 
-#define RENDERER_MAX_INSTANCED_DATA Megabytes(8)
+#define RENDERER_MAX_INSTANCED_DATA Megabytes(12)
 typedef struct Instanced_Data {
   Transformf32 transform;
   Vec4f32 color;
   u32 texture_id;
+  u8 pading[4];
 } Instanced_Data;
 
-#define RENDERER_MAX_TRIANGLES Megabytes(2)*3
-typedef struct Triangle_Instance {
-  Transformf32 transform;
-  Vec4f32 color;
-} Triangle_Instance;
-
-global GLuint VAO_Triangle;
-global GLuint VBO_Triangle;
-global GLuint VBO_TriangleInstance;
-
-// Instanced Quads
-#define RENDERER_MAX_QUADS Megabytes(2)*4
-typedef struct Quad_Instance {
-    Transformf32 transform;
-    Vec4f32 color;
-} Quad_Instance;
-
-global GLuint VAO_Quad;
-global GLuint VBO_Quad;
-global GLuint VBO_QuadInstance;
+global GLuint Vbo_InstancedData; // Shared for Instanced_Data
+global GLuint Vao_Triangle, Vbo_Triangle;
+global GLuint Vao_Quad, Vbo_Quad, Ebo_Quad;
 
 // OGL Programs
 global OGL_Shader RawProgram;
@@ -65,18 +50,23 @@ global OGL_Shader InstancedProgram;
 typedef struct Renderer_State {
   Arena* arena;
 
+  // Line primitives
   Line_Instance* lines_data;
   u32            lines_count;
   u32            lines_max;
 
-  Triangle_Instance* triangles_data;
-  u32                triangles_count;
-  u32                triangles_max;
+  // Instanced Data
+  Instanced_Data* instanced_data;
+  u32             instanced_max;
+  u32             instanced_count;
+  u32             triangle_count;
+  u32             quad_count;
 
-  Quad_Instance* quads_data;
-  u32            quads_count;
-  u32            quads_max;
-
+  // Textures
+  GLuint* textures;
+  u32 texture_count;
+  u32 texture_max;
+  
 } Renderer_State;
 
 global Renderer_State Renderer;
@@ -88,8 +78,8 @@ internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 
 // Renderer primitives
 internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color);
-internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color);
-internal void renderer_push_quad(Transformf32 transform, Vec4f32 color);
+internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color, u32 texture_id);
+internal void renderer_push_quad(Transformf32 transform, Vec4f32 color, u32 texture_id);
 internal void renderer_push_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 internal void renderer_push_box(Vec3f32 min, Vec3f32 max, Vec4f32 color);
 internal void renderer_push_grid(Vec3f32 center, Vec3f32 normal, f32 spacing, s32 count, Vec4f32 color);

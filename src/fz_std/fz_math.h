@@ -71,7 +71,7 @@ typedef struct Quatf32 {
 #define quatf32(x,y,z,w) (Quatf32){x,y,z,w}
 #define quatf32_identity() quatf32(0.0f, 0.0f, 0.0f, 1.0f)
 
-typedef struct Transformf32 {
+typedef struct Transformf32 { // NOTE(fz): 40 bytes.
   Vec3f32 translation;
   Quatf32 rotation;
   Vec3f32 scale;
