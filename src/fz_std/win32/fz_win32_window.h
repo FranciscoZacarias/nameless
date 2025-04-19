@@ -9,6 +9,11 @@ global b32 IsApplicationRunning = true;
 extern void application_init(); // Implement in application layer
 extern void application_tick(); // Implement in application layer
 
+#if FZ_ENABLE_WINDOW
+global s32 WindowWidth  = 1280; 
+global s32 WindowHeight = 720;
+#endif
+
 ///////////////////////
 //~ Timer
 typedef struct PerformanceTimer {
@@ -36,11 +41,6 @@ void win32_timer_end(PerformanceTimer* timer);
 //~ Window
 
 #if FZ_ENABLE_WINDOW
-
-# if !FZ_WINDOW_WIDTH || !FZ_WINDOW_HEIGHT
-#  define FZ_WINDOW_WIDTH  1280
-#  define FZ_WINDOW_HEIGHT 720
-# endif
 
 global HDC   _DeviceContextHandle    = NULL;
 global HGLRC _RenderingContextHandle = NULL;

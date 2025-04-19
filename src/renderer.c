@@ -9,15 +9,15 @@ internal void renderer_init() {
 
   // Shader programs setup
   {
-    OGL_Shader raw_vertex_shader       = ogl_make_shader(StringLiteral(RAW_VERTEX_SHADER_PATH),       GL_VERTEX_SHADER);
-    OGL_Shader instanced_vertex_shader = ogl_make_shader(StringLiteral(INSTANCED_VERTEX_SHADER_PATH), GL_VERTEX_SHADER);
-    OGL_Shader fragment_shader         = ogl_make_shader(StringLiteral(FRAGMENT_SHADER_PATH),         GL_FRAGMENT_SHADER);
+    OGL_Shader raw_vertex_shader       = opengl_make_shader(Str8(RAW_VERTEX_SHADER_PATH),       GL_VERTEX_SHADER);
+    OGL_Shader instanced_vertex_shader = opengl_make_shader(Str8(INSTANCED_VERTEX_SHADER_PATH), GL_VERTEX_SHADER);
+    OGL_Shader fragment_shader         = opengl_make_shader(Str8(FRAGMENT_SHADER_PATH),         GL_FRAGMENT_SHADER);
 
     OGL_Shader raw_shaders[] = { raw_vertex_shader, fragment_shader };
-    RawProgram               = ogl_make_program(raw_shaders, 2);
+    RawProgram               = opengl_make_program(raw_shaders, 2);
 
     GLuint instanced_shaders[] = { instanced_vertex_shader, fragment_shader };
-    InstancedProgram           = ogl_make_program(instanced_shaders, 2);
+    InstancedProgram           = opengl_make_program(instanced_shaders, 2);
 
     ogl_delete_shader(raw_vertex_shader);
     ogl_delete_shader(instanced_vertex_shader);
@@ -161,6 +161,15 @@ internal void renderer_init() {
     }
   }
 
+  // Default renderer font 
+  {
+    f32 font_height = 32.0f;
+    u32 font_texture_id = renderer_load_font(Str8(FONT_SPACEMONO), font_height);
+    if (font_texture_id == 0) {
+      printf("Failed to initialize font rendering\n");
+    }
+  }
+
   print_arena(Renderer.arena, "Arena");
 }
 
@@ -216,7 +225,7 @@ internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection) {
   SwapBuffers(_DeviceContextHandle);
 }
 
-u32 renderer_load_texture(String path) {
+internal u32 renderer_load_texture(String8 path) {
   u32 result = 0;
   if (Renderer.texture_count >= Renderer.texture_max) {
     printf("Texture limit reached\n");
@@ -246,6 +255,18 @@ u32 renderer_load_texture(String path) {
   return result + 1;
 }
 
+
+u32 renderer_load_font(String8 path, f32 font_height) {
+  return 0;
+}
+
+internal void renderer_push_text_screenspace(Vec2f32 position, f32 scale, Vec4f32 color, String8 text) {
+
+}
+
+internal void renderer_push_text_worldspace(Vec3f32 position, f32 scale, Vec4f32 color, String8 text) {
+}
+
 internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color) {
   if (Renderer.lines_count < Renderer.lines_max) {
     Line_Instance* line   = &Renderer.lines_data[Renderer.lines_count];
@@ -260,10 +281,11 @@ internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color) {
 
 internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color) {
   if (Renderer.instanced_count < Renderer.instanced_max) {
-    Instanced_Data* data = &Renderer.instanced_data[Renderer.instanced_count];
-    data->transform      = transform;
-    data->color          = color;
-    data->texture_id     = 0;
+    Instanced_Data* data  = &Renderer.instanced_data[Renderer.instanced_count];
+    data->transform       = transform;
+    data->color           = color;
+    data->texture_id      = 0;
+    data->is_screen_space = false;
     Renderer.triangle_count  += 1;
     Renderer.instanced_count += 1;
   } else {
@@ -273,10 +295,11 @@ internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color) {
 
 internal void renderer_push_triangle_texture(Transformf32 transform, u32 texture_id) {
   if (Renderer.instanced_count < Renderer.instanced_max) {
-    Instanced_Data* data = &Renderer.instanced_data[Renderer.instanced_count];
-    data->transform      = transform;
-    data->color          = Color_White;
-    data->texture_id     = texture_id;
+    Instanced_Data* data  = &Renderer.instanced_data[Renderer.instanced_count];
+    data->transform       = transform;
+    data->color           = Color_White;
+    data->texture_id      = texture_id;
+    data->is_screen_space = false;
     Renderer.triangle_count  += 1;
     Renderer.instanced_count += 1;
   } else {
@@ -286,10 +309,11 @@ internal void renderer_push_triangle_texture(Transformf32 transform, u32 texture
 
 internal void renderer_push_quad(Transformf32 transform, Vec4f32 color) {
   if (Renderer.instanced_count < Renderer.instanced_max) {
-    Instanced_Data* data = &Renderer.instanced_data[Renderer.instanced_count];
-    data->transform      = transform;
-    data->color          = color;
-    data->texture_id     = 0;
+    Instanced_Data* data  = &Renderer.instanced_data[Renderer.instanced_count];
+    data->transform       = transform;
+    data->color           = color;
+    data->texture_id      = 0;
+    data->is_screen_space = false;
     Renderer.quad_count      += 1;
     Renderer.instanced_count += 1;
   } else {
@@ -299,10 +323,11 @@ internal void renderer_push_quad(Transformf32 transform, Vec4f32 color) {
 
 internal void renderer_push_quad_texture(Transformf32 transform, u32 texture_id) {
   if (Renderer.instanced_count < Renderer.instanced_max) {
-    Instanced_Data* data = &Renderer.instanced_data[Renderer.instanced_count];
-    data->transform      = transform;
-    data->color          = Color_White;
-    data->texture_id     = texture_id;
+    Instanced_Data* data  = &Renderer.instanced_data[Renderer.instanced_count];
+    data->transform       = transform;
+    data->color           = Color_White;
+    data->texture_id      = texture_id;
+    data->is_screen_space = false;
     Renderer.quad_count      += 1;
     Renderer.instanced_count += 1;
   } else {

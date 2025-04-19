@@ -7,7 +7,8 @@
 #include <math.h> // TODO(fz): Replace/Implement these functions -> sinf(), cosf(), tan(), atan2f(), sqrtf(), fmaxf(), fabsf()
 
 //~ Extern
-#include "external/stb_image.h"
+#include "external/stb_sprintf.h"
+#include "external/stb_truetype.h"
 
 //~ Single headers
 #include "fz_core.h"
@@ -30,6 +31,11 @@
 #include "fz_win32_window.h"
 
 //~ Extern
+#define STB_SPRINTFZ_IMPLEMENTATION
+#include "external/stb_sprintf.h"
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "external/stb_truetype.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "external/stb_image.h"
 

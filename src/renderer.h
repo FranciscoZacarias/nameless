@@ -6,6 +6,9 @@
 
 #define FRAGMENT_SHADER_PATH "D:/work/nameless/src/shaders/fragment_shader.glsl"
 
+#define FONT_INCONSOLATA "D:/work/nameless/fonts/Inconsolata.otf"
+#define FONT_SPACEMONO "D:/work/nameless/fonts/SpaceMono-Regular.ttf"
+
 ///////////////////////
 //~ Renderer Primitives 
 
@@ -13,6 +16,21 @@ typedef struct Vertex {
   Vec3f32 position;
   Vec2f32 uv;
 } Vertex;
+
+// Font
+typedef struct Glyph {
+  Vec2f32 uv_min; // Bottom-left UV in atlas
+  Vec2f32 uv_max; // Top-right UV in atlas
+  Vec2f32 size;
+  Vec2f32 offset;
+  f32 advance;
+} Glyph;
+
+typedef struct Font {
+  Glyph glyphs[126];
+  u32 texture_id;
+  f32 height;
+} Font;
 
 // Instanced Lines
 #define RENDERER_MAX_LINES Megabytes(1)*2
@@ -37,7 +55,7 @@ typedef struct Instanced_Data {
   Transformf32 transform;
   Vec4f32 color;
   u32 texture_id;
-  u8 pading[4];
+  b32 is_screen_space;
 } Instanced_Data;
 
 global GLuint Vbo_InstancedData; // Shared for Instanced_Data
@@ -71,6 +89,9 @@ typedef struct Renderer_State {
   GLuint* textures;
   u32 texture_count;
   u32 texture_max;
+
+  // Font
+  Font font;
   
 } Renderer_State;
 
@@ -81,8 +102,13 @@ internal void renderer_init();
 internal void renderer_begin_frame();
 internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 
-// Texture
-internal GLuint renderer_load_texture(String path); /* Returns the index into Renderer.textures[] */
+// Renderer load functions
+internal u32 renderer_load_texture(String8 path); /* Returns the index into Renderer.textures[] */
+internal u32 renderer_load_font(String8 path, f32 font_height);
+
+// Renderer text
+internal void renderer_push_text_screenspace(Vec2f32 position, f32 scale, Vec4f32 color, String8 text);
+internal void renderer_push_text_worldspace(Vec3f32 position, f32 scale, Vec4f32 color, String8 text);
 
 // Renderer primitives
 internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color);

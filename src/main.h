@@ -3,8 +3,6 @@
 
 //~ fz_std
 #define FZ_WINDOW_NAME   "nameless"
-#define FZ_WINDOW_WIDTH  1280
-#define FZ_WINDOW_HEIGHT 720
 
 #define FZ_ENABLE_ASSERT  1
 #define FZ_ENABLE_WINDOW  1

@@ -31,7 +31,6 @@ internal Arena* arena_init_sized(u64 reserve, u64 commit) {
     ERROR_MESSAGE_AND_EXIT("Error setting arena's memory");
   }
   
-  print_arena(arena, "");
   return arena;
 }
 
@@ -94,7 +93,7 @@ internal void  arena_free(Arena* arena) {
   memory_release((u8*)arena, arena->reserved);
 }
 
-internal void print_arena(Arena *arena, const char* label) {
+internal void print_arena(Arena *arena, const char8* label) {
   f32 committed_percentage = ((f64)arena->position / arena->commited) * 100.0f;
   f32 reserved_percentage  = ((f64)arena->position / arena->reserved) * 100.0f;
   printf("%s: Arena { reserved: %llu, commited: %llu, commit_size: %llu, position: %llu, align: %llu, committed_percentage: %.2f%%, reserved_percentage: %.2f%% }\n",

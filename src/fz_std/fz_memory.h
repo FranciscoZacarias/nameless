@@ -28,7 +28,7 @@ internal void  arena_pop_to(Arena* arena, u64 pos);
 internal void  arena_clear(Arena* arena);
 internal void  arena_free(Arena* arena);
 
-internal void print_arena(Arena *arena, const char* label);
+internal void print_arena(Arena *arena, const char8* label);
 
 #define ArenaPush(arena, type, count)       (type*)arena_push((arena), sizeof(type)*(count))
 #define ArenaPushNoZero(arena, type, count) (type*)arena_push_no_zero((arena), sizeof(type)*(count))

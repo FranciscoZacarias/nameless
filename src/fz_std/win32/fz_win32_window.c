@@ -100,7 +100,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #if FZ_ENABLE_WINDOW
   _input_init();
 
-  _WindowHandle = win32_window_create(hInstance, FZ_WINDOW_WIDTH, FZ_WINDOW_HEIGHT);
+  _WindowHandle = win32_window_create(hInstance, WindowWidth, WindowHeight);
   if (!_WindowHandle) {
     ERROR_MESSAGE_AND_EXIT("Failed to get window handle\n");
     return 1;
@@ -150,6 +150,11 @@ internal void win32_window_resize_callback(s32 width, s32 height) {
   if (height == 0) { 
     height = 1;
   }
+  if (width == 0) {
+    width = 1;
+  }
+  WindowWidth  = width;
+  WindowHeight = height;
   if (_IsOpenGLContextAttached) {
     glViewport(0, 0, width, height);
   }
@@ -193,7 +198,8 @@ internal HWND win32_window_create(HINSTANCE hInstance, s32 width, s32 height) {
                         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                         CW_USEDEFAULT, CW_USEDEFAULT, width, height,
                         NULL, NULL, hInstance, NULL);
-    
+  WindowWidth  = width;
+  WindowHeight = height;
   return result;
 }
 #endif // FZ_ENABLE_WINDOW
