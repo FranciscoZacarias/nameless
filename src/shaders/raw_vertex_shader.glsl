@@ -1,10 +1,14 @@
 #version 460 core
+
 layout(location = 0) in vec3 start;
 layout(location = 1) in vec3 end;
 layout(location = 2) in vec4 color;
 
 out vec4 frag_color;
-flat out uint texture_id; // Dummy. Just for correctness since it shares frag shader with instanced vertex shader
+
+// Textures not rendered in this program, but we are sharing the same fragment shader
+flat out uint texture_id;
+out vec2 frag_texcoord;
 
 uniform mat4 projection;
 uniform mat4 view;

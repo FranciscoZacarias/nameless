@@ -12,11 +12,28 @@
   - Add Text rendering
 */
 
+u32 Tired = 0;
+u32 Angry = 0;
+u32 Cool = 0;
+u32 Scared = 0;
+
 void application_init() {
   renderer_init();
   camera_init(&GlobalCamera);
   GlobalCamera.position = vec3f32(0.0f, 5.0f, 10.0f);
   camera_look_at(&GlobalCamera, vec3f32(0.0f, 0.0f, 0.0f));
+
+  Tired = renderer_load_texture(StringLiteral("D:/work/nameless/assets/tired.png"));
+  printf("Tired: %d\n", Tired);
+
+  Angry = renderer_load_texture(StringLiteral("D:/work/nameless/assets/angry.png"));
+  printf("Angry: %d\n", Angry);
+
+  Cool = renderer_load_texture(StringLiteral("D:/work/nameless/assets/cool.png"));
+  printf("Cool: %d\n", Cool);
+
+  Scared = renderer_load_texture(StringLiteral("D:/work/nameless/assets/scared.png"));
+  printf("Scared: %d\n", Scared);
 }
 
 void application_tick() {
@@ -26,14 +43,34 @@ void application_tick() {
   renderer_begin_frame();
 
   renderer_push_grid(vec3f32(0.0f, 0.0f, 0.0f), vec3f32(0.0f, 1.0f, 0.0f), 1.0f, 64, Color_Gray);
-
   renderer_push_arrow(vec3f32(-6.0f, 0.0f, 0.0f), vec3f32(6.0f, 0.0f, 0.0f), Color_Red);
   renderer_push_arrow(vec3f32(0.0f, -6.0f, 0.0f), vec3f32(0.0f, 6.0f, 0.0f), Color_Green);
   renderer_push_arrow(vec3f32(0.0f, 0.0f, -6.0f), vec3f32(0.0f, 0.0f, 6.0f), Color_Blue);
 
-  renderer_push_box(vec3f32(-0.1f, 0.0f, -0.1f), vec3f32(6.1f, 6.1f, 6.1f), Color_Yellow);
+  f32 spacing = 1.5f;
+  f32 start_x = -2.25f;
+  Transformf32 transform = transformf32(vec3f32(0.0f, 0.5f, 0.0f), quatf32(0.0f, 0.0f, 0.0f, 1.0f), vec3f32(1.0f, 1.0f, 1.0f));
 
-  Mat4f32 view = camera_get_view_matrix(&GlobalCamera);
+  transform.translation.x = start_x;
+  renderer_push_quad_texture(transform, Tired);
+  transform.translation.x = start_x + spacing;
+  renderer_push_quad_texture(transform, Angry);
+  transform.translation.x = start_x + 2.0f * spacing;
+  renderer_push_quad_texture(transform, Cool);
+  transform.translation.x = start_x + 3.0f * spacing;
+  renderer_push_quad_texture(transform, Scared);
+
+  transform.translation.y = 2.0f;
+  transform.translation.x = start_x;
+  renderer_push_quad(transform, Color_Red);
+  transform.translation.x = start_x + spacing;
+  renderer_push_quad(transform, Color_Green);
+  transform.translation.x = start_x + 2.0f * spacing;
+  renderer_push_quad(transform, Color_Blue);
+  transform.translation.x = start_x + 3.0f * spacing;
+  renderer_push_quad(transform, Color_Yellow);
+
+  Mat4f32 view       = camera_get_view_matrix(&GlobalCamera);
   Mat4f32 projection = mat4f32_perspective(GlobalCamera.fov, (f32)FZ_WINDOW_WIDTH, (f32)FZ_WINDOW_HEIGHT, 0.1f, 100.0f);
 
   renderer_end_frame(view, projection);

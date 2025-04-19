@@ -21,6 +21,7 @@ typedef struct String_List {
 //~ String Functions
 
 #define StringLiteral(s) (String){sizeof(s)-1, (char*)(s)}
+
 internal String string_new(u64 size, char* str);
 internal String string_format(String fmt, ...);
 internal String string_range(char* first, char* range);

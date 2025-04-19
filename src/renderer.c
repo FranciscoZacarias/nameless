@@ -7,18 +7,22 @@ internal void renderer_init() {
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
-  OGL_Shader fragment_shader = ogl_make_shader(StringLiteral(FRAGMENT_SHADER_PATH), GL_FRAGMENT_SHADER);
+  // Shader programs setup
+  {
+    OGL_Shader raw_vertex_shader       = ogl_make_shader(StringLiteral(RAW_VERTEX_SHADER_PATH),       GL_VERTEX_SHADER);
+    OGL_Shader instanced_vertex_shader = ogl_make_shader(StringLiteral(INSTANCED_VERTEX_SHADER_PATH), GL_VERTEX_SHADER);
+    OGL_Shader fragment_shader         = ogl_make_shader(StringLiteral(FRAGMENT_SHADER_PATH),         GL_FRAGMENT_SHADER);
 
-  OGL_Shader raw_vertex_shader = ogl_make_shader(StringLiteral(RAW_VERTEX_SHADER_PATH), GL_VERTEX_SHADER);
-  OGL_Shader raw_shaders[] = { raw_vertex_shader, fragment_shader };
-  RawProgram               = ogl_make_program(raw_shaders, 2);
-  ogl_delete_shader(raw_vertex_shader);
+    OGL_Shader raw_shaders[] = { raw_vertex_shader, fragment_shader };
+    RawProgram               = ogl_make_program(raw_shaders, 2);
 
-  OGL_Shader instanced_vertex_shader = ogl_make_shader(StringLiteral(INSTANCED_VERTEX_SHADER_PATH), GL_VERTEX_SHADER);
-  GLuint instanced_shaders[] = { instanced_vertex_shader, fragment_shader };
-  InstancedProgram           = ogl_make_program(instanced_shaders, 2);
-  ogl_delete_shader(instanced_vertex_shader);
-  ogl_delete_shader(fragment_shader);
+    GLuint instanced_shaders[] = { instanced_vertex_shader, fragment_shader };
+    InstancedProgram           = ogl_make_program(instanced_shaders, 2);
+
+    ogl_delete_shader(raw_vertex_shader);
+    ogl_delete_shader(instanced_vertex_shader);
+    ogl_delete_shader(fragment_shader);
+  }
 
   // Lines Setup
   {
@@ -62,11 +66,11 @@ internal void renderer_init() {
 
     // Triangle Primitives
     {
-      Vec3f32 unit_triangle[] = {
-        vec3f32( 0.0f,  0.577f, 0.0f),
-        vec3f32(-0.5f, -0.289f, 0.0f),
-        vec3f32( 0.5f, -0.289f, 0.0f),
-      };
+        Vertex unit_triangle[] = {
+          { vec3f32( 0.0f,  0.577f, 0.0f), vec2f32(0.5f, 1.0f) }, // Top
+          { vec3f32(-0.5f, -0.289f, 0.0f), vec2f32(0.0f, 0.0f) }, // Bottom-left
+          { vec3f32( 0.5f, -0.289f, 0.0f), vec2f32(1.0f, 0.0f) }, // Bottom-right
+        };
 
       glGenVertexArrays(1, &Vao_Triangle);
       glGenBuffers(1, &Vbo_Triangle);
@@ -101,11 +105,11 @@ internal void renderer_init() {
 
     // Quad Primitives
     {
-      Vec3f32 unit_quad[] = {
-        vec3f32(-0.5f, -0.5f, 0.0f), // Bottom-left
-        vec3f32( 0.5f, -0.5f, 0.0f), // Bottom-right
-        vec3f32( 0.5f,  0.5f, 0.0f), // Top-right
-        vec3f32(-0.5f,  0.5f, 0.0f), // Top-left
+      Vertex unit_quad[] = {
+        { vec3f32(-0.5f, -0.5f, 0.0f), vec2f32(0.0f, 0.0f) }, // Bottom-left
+        { vec3f32( 0.5f, -0.5f, 0.0f), vec2f32(1.0f, 0.0f) }, // Bottom-right
+        { vec3f32( 0.5f,  0.5f, 0.0f), vec2f32(1.0f, 1.0f) }, // Top-right
+        { vec3f32(-0.5f,  0.5f, 0.0f), vec2f32(0.0f, 1.0f) }, // Top-left
       };
       u32 unit_quad_indices[] = { 0, 1, 2, 0, 2, 3 };
 
@@ -118,7 +122,10 @@ internal void renderer_init() {
       glBindBuffer(GL_ARRAY_BUFFER, Vbo_Quad);
       glBufferData(GL_ARRAY_BUFFER, sizeof(unit_quad), unit_quad, GL_STATIC_DRAW);
       glEnableVertexAttribArray(0);
-      glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vec3f32), (void*)0);
+      glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)OffsetOfMember(Vertex, position));
+      glEnableVertexAttribArray(6);
+      glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)OffsetOfMember(Vertex, uv));
+
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Ebo_Quad);
       glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unit_quad_indices), unit_quad_indices, GL_STATIC_DRAW);
 
@@ -178,17 +185,24 @@ internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection) {
   // Instanced Data
   glUseProgram(InstancedProgram);
   {
+    local_persist GLint texture_units[32] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
     renderer_set_uniform_mat4fv(InstancedProgram, "view", view);
     renderer_set_uniform_mat4fv(InstancedProgram, "projection", projection);
+    for (u32 i = 0; i < Renderer.texture_count; i += 1) {
+      glActiveTexture(GL_TEXTURE0 + i);
+      glBindTexture(GL_TEXTURE_2D, Renderer.textures[i]);
+    }
+    glUniform1iv(glGetUniformLocation(InstancedProgram, "textures"), Renderer.texture_count, texture_units);
+    renderer_set_uniform_u32(InstancedProgram, "texture_count", Renderer.texture_count);
     glBindBuffer(GL_ARRAY_BUFFER, Vbo_InstancedData);
     glBufferData(GL_ARRAY_BUFFER, Renderer.instanced_count * sizeof(Instanced_Data), Renderer.instanced_data, GL_STREAM_DRAW);
     if (Renderer.triangle_count > 0) {
-        glBindVertexArray(Vao_Triangle);
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 3, Renderer.triangle_count);
+      glBindVertexArray(Vao_Triangle);
+      glDrawArraysInstanced(GL_TRIANGLES, 0, 3, Renderer.triangle_count);
     }
     if (Renderer.quad_count > 0) {
-        glBindVertexArray(Vao_Quad);
-        glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, Renderer.quad_count);
+      glBindVertexArray(Vao_Quad);
+      glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, Renderer.quad_count);
     }
     glBindVertexArray(0);
   }
@@ -200,6 +214,36 @@ internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection) {
   Renderer.quad_count      = 0;
 
   SwapBuffers(_DeviceContextHandle);
+}
+
+u32 renderer_load_texture(String path) {
+  u32 result = 0;
+  if (Renderer.texture_count >= Renderer.texture_max) {
+    printf("Texture limit reached\n");
+    return result;
+  }
+
+  s32 width, height, channels;
+  u8* data = stbi_load(path.str, &width, &height, &channels, 4);
+  if (!data) {
+    printf("Failed to load texture: %s\n", path.str);
+    return result;
+  }
+
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  stbi_image_free(data);
+  result = Renderer.texture_count;
+  Renderer.textures[result] = texture;
+  Renderer.texture_count++;
+  
+  return result + 1;
 }
 
 internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color) {
@@ -214,29 +258,55 @@ internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color) {
   }
 }
 
-internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color, u32 texture_id) {
+internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color) {
   if (Renderer.instanced_count < Renderer.instanced_max) {
-    Instanced_Data* instance = &Renderer.instanced_data[Renderer.instanced_count];
-    instance->transform = transform;
-    instance->color = color;
-    instance->texture_id = texture_id;
-    Renderer.triangle_count++;
-    Renderer.instanced_count++;
+    Instanced_Data* data = &Renderer.instanced_data[Renderer.instanced_count];
+    data->transform      = transform;
+    data->color          = color;
+    data->texture_id     = 0;
+    Renderer.triangle_count  += 1;
+    Renderer.instanced_count += 1;
   } else {
-    ERROR_MESSAGE_AND_EXIT("Maximum instanced data reached.\n");
+    printf("Maximum instanced data reached.\n");
   }
 }
 
-internal void renderer_push_quad(Transformf32 transform, Vec4f32 color, u32 texture_id) {
+internal void renderer_push_triangle_texture(Transformf32 transform, u32 texture_id) {
   if (Renderer.instanced_count < Renderer.instanced_max) {
-    Instanced_Data* instance = &Renderer.instanced_data[Renderer.instanced_count];
-    instance->transform = transform;
-    instance->color = color;
-    instance->texture_id = texture_id;
-    Renderer.quad_count++;
-    Renderer.instanced_count++;
+    Instanced_Data* data = &Renderer.instanced_data[Renderer.instanced_count];
+    data->transform      = transform;
+    data->color          = Color_White;
+    data->texture_id     = texture_id;
+    Renderer.triangle_count  += 1;
+    Renderer.instanced_count += 1;
   } else {
-    ERROR_MESSAGE_AND_EXIT("Maximum instanced data reached.\n");
+    printf("Maximum instanced data reached.\n");
+  }
+}
+
+internal void renderer_push_quad(Transformf32 transform, Vec4f32 color) {
+  if (Renderer.instanced_count < Renderer.instanced_max) {
+    Instanced_Data* data = &Renderer.instanced_data[Renderer.instanced_count];
+    data->transform      = transform;
+    data->color          = color;
+    data->texture_id     = 0;
+    Renderer.quad_count      += 1;
+    Renderer.instanced_count += 1;
+  } else {
+    printf("Maximum instanced data reached.\n");
+  }
+}
+
+internal void renderer_push_quad_texture(Transformf32 transform, u32 texture_id) {
+  if (Renderer.instanced_count < Renderer.instanced_max) {
+    Instanced_Data* data = &Renderer.instanced_data[Renderer.instanced_count];
+    data->transform      = transform;
+    data->color          = Color_White;
+    data->texture_id     = texture_id;
+    Renderer.quad_count      += 1;
+    Renderer.instanced_count += 1;
+  } else {
+    printf("Maximum instanced data reached.\n");
   }
 }
 

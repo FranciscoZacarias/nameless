@@ -9,6 +9,11 @@
 ///////////////////////
 //~ Renderer Primitives 
 
+typedef struct Vertex {
+  Vec3f32 position;
+  Vec2f32 uv;
+} Vertex;
+
 // Instanced Lines
 #define RENDERER_MAX_LINES Megabytes(1)*2
 typedef struct Line_Instance {
@@ -76,12 +81,18 @@ internal void renderer_init();
 internal void renderer_begin_frame();
 internal void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 
+// Texture
+internal GLuint renderer_load_texture(String path); /* Returns the index into Renderer.textures[] */
+
 // Renderer primitives
 internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color);
-internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color, u32 texture_id);
-internal void renderer_push_quad(Transformf32 transform, Vec4f32 color, u32 texture_id);
 internal void renderer_push_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 internal void renderer_push_box(Vec3f32 min, Vec3f32 max, Vec4f32 color);
 internal void renderer_push_grid(Vec3f32 center, Vec3f32 normal, f32 spacing, s32 count, Vec4f32 color);
+
+internal void renderer_push_triangle(Transformf32 transform, Vec4f32 color);
+internal void renderer_push_triangle_texture(Transformf32 transform, u32 texture_id);
+internal void renderer_push_quad(Transformf32 transform, Vec4f32 color);
+internal void renderer_push_quad_texture(Transformf32 transform, u32 texture_id);
 
 #endif // RENDERER_H

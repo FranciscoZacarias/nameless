@@ -5,12 +5,15 @@ layout(location = 1) in vec3 instance_translation;
 layout(location = 2) in vec4 instance_rotation;
 layout(location = 3) in vec3 instance_scale;
 layout(location = 4) in vec4 instance_color;
-layout(location = 5) in uint instance_texture_id; 
+layout(location = 5) in uint instance_texture_id;
+layout(location = 6) in vec2 base_texcoord;
 
 uniform mat4 projection;
 uniform mat4 view;
 
 out vec4 frag_color;
+out vec2 frag_texcoord;
+
 flat out uint texture_id;
 
 vec3 rotate(vec3 v, vec4 q) {
@@ -23,8 +26,8 @@ void main() {
   vec3 rotated_pos = rotate(scaled_pos, instance_rotation);
   vec3 final_pos   = rotated_pos + instance_translation;
 
-  // To fragment shader
   gl_Position = projection * view * vec4(final_pos, 1.0);
-  frag_color  = instance_color;
-  texture_id  = instance_texture_id;
+  frag_color = instance_color;
+  texture_id = instance_texture_id;
+  frag_texcoord = base_texcoord;
 }
