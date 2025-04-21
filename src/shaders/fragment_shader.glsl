@@ -15,7 +15,7 @@ void main() {
     FragColor = frag_color; // Solid color or invalid texture
   } else {
     // NOTE(fz): We subtract -1 from texture_id because we are using index 1 as the initial texture.
-    // if texture_id is 0, it should render a color
-    FragColor = texture(textures[texture_id - 1], frag_texcoord) * frag_color;
+    vec4 tex = texture(textures[texture_id - 1], frag_texcoord);
+    FragColor = frag_color * tex;
   }
 }

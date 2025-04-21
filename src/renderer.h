@@ -19,17 +19,18 @@ typedef struct Vertex {
 
 // Font
 typedef struct Glyph {
-  Vec2f32 uv_min; // Bottom-left UV in atlas
-  Vec2f32 uv_max; // Top-right UV in atlas
+  Vec2f32 uv_min;
+  Vec2f32 uv_max;
   Vec2f32 size;
   Vec2f32 offset;
-  f32 advance;
+  f32     advance;
 } Glyph;
 
 typedef struct Font {
-  Glyph glyphs[126];
-  u32 texture_id;
-  f32 height;
+  Glyph glyphs[95];
+  u32   texture_id;
+  f32   height;
+  f32   line_height;
 } Font;
 
 // Instanced Lines
@@ -38,7 +39,6 @@ typedef struct Line_Instance {
   Vec3f32 start;
   Vec3f32 end;
   Vec4f32 color;
-  u8 padding[8];
 } Line_Instance;
 
 global GLuint Vao_Line;
@@ -50,11 +50,13 @@ typedef enum Instanced_Type {
   Instanced_Quad,
 } Instanced_Type;
 
-#define RENDERER_MAX_INSTANCED_DATA Megabytes(12)
+#define RENDERER_MAX_INSTANCED_DATA Megabytes(8)
 typedef struct Instanced_Data {
   Transformf32 transform;
   Vec4f32 color;
   u32 texture_id;
+  Vec2f32 uv_min;
+  Vec2f32 uv_max;
   b32 is_screen_space;
 } Instanced_Data;
 
@@ -92,7 +94,7 @@ typedef struct Renderer_State {
 
   // Font
   Font font;
-  
+
 } Renderer_State;
 
 global Renderer_State Renderer;
@@ -107,8 +109,9 @@ internal u32 renderer_load_texture(String8 path); /* Returns the index into Rend
 internal u32 renderer_load_font(String8 path, f32 font_height);
 
 // Renderer text
-internal void renderer_push_text_screenspace(Vec2f32 position, f32 scale, Vec4f32 color, String8 text);
-internal void renderer_push_text_worldspace(Vec3f32 position, f32 scale, Vec4f32 color, String8 text);
+internal f32 renderer_push_text_screenspace(Vec2f32 screen_position, Vec4f32 color, f32 scale, String8 text);  /* Renders text, returns vertical size of rendered text */
+internal f32 renderer_push_textf_screenspace(Vec2f32 screen_position, Vec4f32 color, f32 scale, const char8* text, ...);
+internal f32 renderer_push_text_worldspace(Vec3f32 position, Vec4f32 color, f32 scale, String8 text);
 
 // Renderer primitives
 internal void renderer_push_line(Vec3f32 start, Vec3f32 end, Vec4f32 color);

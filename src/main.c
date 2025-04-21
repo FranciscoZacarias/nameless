@@ -12,10 +12,12 @@
   - Add Text rendering
 */
 
-u32 Tired = 0;
-u32 Angry = 0;
-u32 Cool = 0;
+u32 Tired  = 0;
+u32 Angry  = 0;
+u32 Cool   = 0;
 u32 Scared = 0;
+
+u32 font_inconsolata = 0;
 
 void application_init() {
   renderer_init();
@@ -53,7 +55,6 @@ void application_tick() {
 
   transform.translation.x = start_x;
   renderer_push_quad_texture(transform, Tired);
-  renderer_push_text_worldspace(vec3f32(0.0f, 4.0f, 3.0f), 0.01f, vec4f32(1.0f, 1.0f, 1.0f, 1.0f), Str8("We are not your kind!"));
   transform.translation.x = start_x + spacing;
   renderer_push_quad_texture(transform, Angry);
   transform.translation.x = start_x + 2.0f * spacing;
@@ -71,7 +72,18 @@ void application_tick() {
   transform.translation.x = start_x + 3.0f * spacing;
   renderer_push_quad(transform, Color_Yellow);
 
-  renderer_push_text_screenspace(vec2f32(0.0f, 0.0f), 1.0f, vec4f32(1.0f, 1.0f, 0.0f, 1.0f), Str8("FPS: 60"));
+  f32 ws_offset = renderer_push_text_worldspace(vec3f32(0.0f, 4.0f, 3.0f), Color_Black, 0.01f, Str8("We are not your kind!"));
+  renderer_push_text_worldspace(vec3f32(0.0f, 4.0f - ws_offset, 3.0f), Color_Purple, 0.01f, Str8("We are not your kind!"));
+  renderer_push_textf_screenspace(vec2f32(0.0f, Renderer.font.line_height), Color_Black, 1.0f, "FPS: %.0f", Fps);
+  
+  float cycle = fmodf(ElapsedTime, 2.0f * 2.0f);
+  float t = cycle < 2.0f ? (cycle / 2.0f) : (1.0f - ((cycle - 2.0f) / 2.0f));
+  float value = 0.5f * (1.0f - cosf(t * (float)PI));
+
+  printf("Value: %.2f\n", value);
+  
+  f32 offset = renderer_push_text_screenspace(vec2f32(0.0f, Renderer.font.line_height*2), vec4f32(1.0f, 0.0f, 0.0f, value), 1.0f, Str8("This is a big string\nWith a string break\nAnd another one"));
+  renderer_push_text_screenspace(vec2f32(value*256, Renderer.font.line_height*2 + offset), Color_Blue, 1.0f, Str8("And yet another one!"));
 
   Mat4f32 view       = camera_get_view_matrix(&GlobalCamera);
   Mat4f32 projection = mat4f32_perspective(GlobalCamera.fov, (f32)WindowWidth, (f32)WindowHeight, 0.1f, 100.0f);

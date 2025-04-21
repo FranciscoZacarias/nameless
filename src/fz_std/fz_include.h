@@ -7,8 +7,15 @@
 #include <math.h> // TODO(fz): Replace/Implement these functions -> sinf(), cosf(), tan(), atan2f(), sqrtf(), fmaxf(), fabsf()
 
 //~ Extern
+#define STB_SPRINTF_STATIC
+#define STB_SPRINTFZ_IMPLEMENTATION
 #include "external/stb_sprintf.h"
+#define STBTT_STATIC
+#define STB_TRUETYPE_IMPLEMENTATION
 #include "external/stb_truetype.h"
+#define STB_IMAGE_STATIC
+#define STB_IMAGE_IMPLEMENTATION
+#include "external/stb_image.h"
 
 //~ Single headers
 #include "fz_core.h"
@@ -29,15 +36,6 @@
 #endif
 #include "fz_win32.h"
 #include "fz_win32_window.h"
-
-//~ Extern
-#define STB_SPRINTFZ_IMPLEMENTATION
-#include "external/stb_sprintf.h"
-#define STB_TRUETYPE_IMPLEMENTATION
-#include "external/stb_truetype.h"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "external/stb_image.h"
 
 //~ Source
 #include "fz_math.c"

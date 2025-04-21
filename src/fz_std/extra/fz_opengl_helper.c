@@ -47,7 +47,7 @@ internal OGL_Shader opengl_make_program(OGL_Shader *shaders, u32 count) {
   return result;
 }
 
-internal void renderer_set_uniform_mat4fv(u32 program, const char8* uniform, Mat4f32 mat) {
+internal void opengl_set_uniform_mat4fv(u32 program, const char8* uniform, Mat4f32 mat) {
   s32 uniform_location = glGetUniformLocation(program, uniform);
   if (uniform_location == -1) {
     printf("Mat4f32 :: Uniform %s not found for program %d\n", uniform, program);
@@ -55,12 +55,20 @@ internal void renderer_set_uniform_mat4fv(u32 program, const char8* uniform, Mat
   glUniformMatrix4fv(uniform_location, 1, 1, &mat.data[0][0]);
 }
 
-internal void renderer_set_uniform_u32(u32 program, const char8* uniform, u32 value) {
+internal void opengl_set_uniform_u32(u32 program, const char8* uniform, u32 value) {
   GLint uniform_location = glGetUniformLocation(program, uniform);
   if (uniform_location == -1) {
     printf("u32 :: Uniform %s not found for program %d\n", uniform, program);
   }
   glUniform1ui(uniform_location, value);
+}
+
+internal void opengl_set_uniform_f32(u32 program, const char8* uniform, f32 value) {
+  GLint uniform_location = glGetUniformLocation(program, uniform);
+  if (uniform_location == -1) {
+    printf("f32 :: Uniform %s not found for program %d\n", uniform, program);
+  }
+  glUniform1f(uniform_location, value);
 }
 
 internal void ogl_delete_shader(OGL_Shader shader) {

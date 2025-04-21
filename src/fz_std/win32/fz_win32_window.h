@@ -31,6 +31,7 @@ internal f32 _get_elapsed_time();
 
 #define DeltaTime   _Timer_DeltaTime.elapsed_seconds
 #define FrameTime   _Timer_FrameTime.elapsed_seconds
+#define Fps         (DeltaTime > 0.0f ? 1.0f / DeltaTime : 0.0f)
 #define ElapsedTime _get_elapsed_time()
 
 void win32_timer_init();
